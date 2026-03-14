@@ -57,6 +57,7 @@ const mechanicService = {
 // Helper to convert API mechanic to frontend Mechanic type
 export function toFrontendMechanic(m: MechanicFromAPI): Mechanic {
     return {
+        _id: m._id,
         id: m.mechanicId,
         name: m.name,
         experience: m.experience,

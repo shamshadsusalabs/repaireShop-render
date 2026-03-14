@@ -72,6 +72,12 @@ const partSchema = new mongoose.Schema(
             min: [0, 'Sell GST cannot be negative'],
             max: [100, 'Sell GST cannot exceed 100%'],
         },
+        hsnCode: {
+            type: String,
+            trim: true,
+            default: '',
+            maxlength: [20, 'HSN code cannot exceed 20 characters'],
+        },
         location: {
             type: String,
             trim: true,

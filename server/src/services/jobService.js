@@ -1,6 +1,7 @@
 const Job = require('../models/Job');
 const Part = require('../models/Part');
 const User = require('../models/User');
+const customerService = require('./customerService');
 const generateJobId = require('../utils/generateJobId');
 
 /**
@@ -9,9 +10,22 @@ const generateJobId = require('../utils/generateJobId');
 const createJob = async (jobData, userId) => {
     const jobId = await generateJobId();
 
+    // Create or update customer record
+    const customer = await customerService.findOrCreateCustomer({
+        name: jobData.customerName,
+        mobile: jobData.mobile,
+        carModel: jobData.carModel,
+        carNumber: jobData.carNumber,
+        kmDriven: jobData.kmDriven,
+        email: jobData.email || '',
+        address: jobData.address || '',
+    }, userId);
+
+    // Create job with customer ID
     const job = await Job.create({
         ...jobData,
         jobId,
+        customerId: customer.customerId, // Add customer ID to job
         status: 'Pending',
         inspectionResults: [],
         faultyParts: [],
@@ -19,6 +33,9 @@ const createJob = async (jobData, userId) => {
         grandTotal: 0,
         createdBy: userId,
     });
+
+    // Update the last KM reading with job ID
+    await customerService.updateKmWithJobId(customer.mobile, jobId);
 
     return job;
 };
@@ -374,6 +391,8 @@ const issueParts = async (jobId, partsToIssue, userId) => {
         // Deduct from inventory
         part.quantity -= quantityIssued;
         await part.save();
+        
+        console.log(`✅ Part ${part.partName} (${part.partNumber}): Deducted ${quantityIssued}, New quantity: ${part.quantity}`);
 
         // Record the issuance
         issuedRecords.push({
@@ -382,6 +401,8 @@ const issueParts = async (jobId, partsToIssue, userId) => {
             partNumber: part.partNumber,
             quantityIssued,
             unitPrice: part.sellPrice,
+            gstPercent: part.buyGstPercent, // Store the buy GST for invoice
+            hsnCode: part.hsnCode, // Store HSN code if available
             issuedBy: userId,
             issuedAt: new Date(),
         });

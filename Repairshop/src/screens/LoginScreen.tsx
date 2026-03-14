@@ -10,6 +10,7 @@ import {
     ActivityIndicator,
     Alert,
     ScrollView,
+    Image,
 } from 'react-native';
 import useAuthStore from '../store/authStore';
 import { colors } from '../theme';
@@ -60,9 +61,12 @@ export default function LoginScreen() {
                         {/* Logo */}
                         <View style={styles.logoContainer}>
                             <View style={styles.logoBox}>
-                                <Text style={styles.logoEmoji}>🔧</Text>
+                                <Image 
+                                    source={require('../../public/logo1.jpeg')} 
+                                    style={styles.logoImage}
+                                />
                             </View>
-                            <Text style={styles.brandName}>SusaLabs</Text>
+                            <Text style={styles.brandName}>LUXRE</Text>
                             <Text style={styles.brandSubtitle}>
                                 Auto Repair Management
                             </Text>
@@ -181,7 +185,7 @@ export default function LoginScreen() {
                         </TouchableOpacity>
 
                         {/* Footer */}
-                        <Text style={styles.footer}>© 2026 SusaLabs. All rights reserved.</Text>
+                        <Text style={styles.footer}>Powered by SusaLabs</Text>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -244,10 +248,10 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     logoBox: {
-        width: 72,
-        height: 72,
+        width: 80,
+        height: 80,
         borderRadius: 16,
-        backgroundColor: colors.primaryDark,
+        backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 12,
@@ -256,6 +260,13 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.35,
         shadowRadius: 16,
         elevation: 10,
+        overflow: 'hidden',
+        padding: 8,
+    },
+    logoImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'contain',
     },
     logoEmoji: {
         fontSize: 36,

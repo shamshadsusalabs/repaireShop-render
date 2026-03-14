@@ -32,7 +32,21 @@ router
     .get(storeOrderController.getMyOrders);
 
 router.route('/orders/:id')
-    .get(storeOrderController.getStoreOrderById);
+    .get(storeOrderController.getStoreOrderById)
+    .put(
+        [
+            body('vendorId').optional().trim().notEmpty().withMessage('Vendor is required'),
+            body('partName').optional().trim().notEmpty().withMessage('Part name is required'),
+            body('partNumber').optional().trim(),
+            body('unitPrice').optional().isFloat({ min: 0 }).withMessage('Unit price must be a positive number'),
+            body('quantity').optional().isInt({ min: 1 }).withMessage('Quantity must be at least 1'),
+            body('gstPercent').optional().isFloat({ min: 0, max: 100 }).withMessage('GST must be 0-100'),
+            body('discount').optional().isFloat({ min: 0, max: 100 }).withMessage('Discount must be 0-100'),
+        ],
+        validate,
+        storeOrderController.updateOrder
+    )
+    .delete(storeOrderController.deleteOrder);
 
 router.get('/orders/last-by-part/:partNumber', storeOrderController.getLatestOrderByPartNumber);
 

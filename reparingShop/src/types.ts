@@ -22,6 +22,8 @@ export interface FaultyPart {
     actualCost: number;
     labourCharge: number;
     discount: number;
+    procurementGST?: number; // GST at which part was purchased
+    hsnCode?: string; // HSN/SAC code for the part
 }
 
 export interface IssuedPart {
@@ -31,6 +33,8 @@ export interface IssuedPart {
     partNumber: string;
     quantityIssued: number;
     unitPrice: number;
+    gstPercent?: number; // GST at which part was purchased
+    hsnCode?: string; // HSN/SAC code
     issuedBy?: {
         _id: string;
         name: string;
@@ -42,6 +46,7 @@ export interface IssuedPart {
 export interface Job {
     jobId: string;
     customerName: string;
+    customerId?: string;
     mobile: string;
     carModel: string;
     carNumber: string;
@@ -68,6 +73,7 @@ export interface Job {
 }
 
 export interface Mechanic {
+    _id: string;
     id: string;
     name: string;
     experience: string;

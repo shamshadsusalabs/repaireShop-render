@@ -7,7 +7,7 @@
   Features:
   - WhatsApp session management (QR, login, logout)
   - Bulk campaign send with gap/dedup/cancel
-  - Browser dashboard at https://repaireshop-2.onrender.com
+  - Browser dashboard at https://repaireshop-render-1.onrender.com
 */
 
 const express = require('express');

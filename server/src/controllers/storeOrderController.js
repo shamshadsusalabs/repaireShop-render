@@ -146,3 +146,101 @@ exports.getLatestOrderByPartNumber = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * @desc    Update a purchase order
+ * @route   PUT /api/store/orders/:id
+ * @access  Private (Store, Admin)
+ */
+exports.updateOrder = async (req, res, next) => {
+    try {
+        const order = await PurchaseOrder.findById(req.params.id);
+
+        if (!order) {
+            const error = new Error('Order not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        // Store can only update their own orders
+        if (req.user.role === 'store' && order.storeId.toString() !== req.user._id.toString()) {
+            const error = new Error('Not authorized to update this order');
+            error.statusCode = 403;
+            throw error;
+        }
+
+        const { vendorId, partName, partNumber, unitPrice, quantity, discount, gstPercent, notes } = req.body;
+
+        // Verify vendor exists if vendorId is being updated
+        if (vendorId && vendorId !== order.vendorId.toString()) {
+            const vendor = await Vendor.findById(vendorId);
+            if (!vendor) {
+                const error = new Error('Vendor not found');
+                error.statusCode = 404;
+                throw error;
+            }
+        }
+
+        // Recalculate total cost
+        const newUnitPrice = unitPrice !== undefined ? unitPrice : order.unitPrice;
+        const newQuantity = quantity !== undefined ? quantity : order.quantity;
+        const newDiscount = discount !== undefined ? discount : order.discount;
+        const newGstPercent = gstPercent !== undefined ? gstPercent : order.gstPercent;
+
+        const subtotal = newUnitPrice * newQuantity;
+        const discountAmount = subtotal * (newDiscount / 100);
+        const afterDiscount = subtotal - discountAmount;
+        const gstAmount = afterDiscount * (newGstPercent / 100);
+        const totalCost = afterDiscount + gstAmount;
+
+        // Update fields
+        if (vendorId) order.vendorId = vendorId;
+        if (partName) order.partName = partName;
+        if (partNumber !== undefined) order.partNumber = partNumber;
+        if (unitPrice !== undefined) order.unitPrice = unitPrice;
+        if (quantity !== undefined) order.quantity = quantity;
+        if (discount !== undefined) order.discount = discount;
+        if (gstPercent !== undefined) order.gstPercent = gstPercent;
+        if (notes !== undefined) order.notes = notes;
+        order.totalCost = Math.round(totalCost * 100) / 100;
+
+        await order.save();
+
+        const updatedOrder = await PurchaseOrder.findById(order._id)
+            .populate('vendorId', 'name email phone companyName');
+
+        res.status(200).json({ success: true, data: updatedOrder });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Delete a purchase order
+ * @route   DELETE /api/store/orders/:id
+ * @access  Private (Store, Admin)
+ */
+exports.deleteOrder = async (req, res, next) => {
+    try {
+        const order = await PurchaseOrder.findById(req.params.id);
+
+        if (!order) {
+            const error = new Error('Order not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        // Store can only delete their own orders
+        if (req.user.role === 'store' && order.storeId.toString() !== req.user._id.toString()) {
+            const error = new Error('Not authorized to delete this order');
+            error.statusCode = 403;
+            throw error;
+        }
+
+        await order.deleteOne();
+
+        res.status(200).json({ success: true, message: 'Purchase order deleted successfully' });
+    } catch (error) {
+        next(error);
+    }
+};

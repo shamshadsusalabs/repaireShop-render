@@ -43,6 +43,7 @@ router.use('/mechanic-auth', mechanicAuthRoutes);  // Mechanic auth (login, logo
 router.use('/jobs', jobRoutes);                    // Job management (admin only via protect)
 router.use('/mechanics', mechanicRoutes);          // Mechanic CRUD (admin only)
 router.use('/users', userRoutes);                  // User CRUD (admin only)
+router.use('/customers', require('./customerRoutes')); // Customer management
 router.use('/public', publicRoutes);               // Public endpoints (no auth)
 router.use('/parts', partRoutes);                  // Parts/Inventory (store & admin)
 router.use('/vendor', vendorRoutes);               // Vendor endpoints

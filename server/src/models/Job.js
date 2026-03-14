@@ -88,6 +88,17 @@ const issuedPartSchema = new mongoose.Schema(
             default: 0,
             min: 0,
         },
+        gstPercent: {
+            type: Number,
+            default: 0,
+            min: 0,
+            max: 100,
+        },
+        hsnCode: {
+            type: String,
+            default: '',
+            trim: true,
+        },
         issuedBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
@@ -108,6 +119,12 @@ const jobSchema = new mongoose.Schema(
             required: true,
             unique: true,
             trim: true,
+        },
+        customerId: {
+            type: String,
+            default: '',
+            trim: true,
+            index: true,
         },
         customerName: {
             type: String,

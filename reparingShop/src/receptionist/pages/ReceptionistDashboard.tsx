@@ -22,42 +22,12 @@ import {
     PhoneOutlined,
     CarOutlined,
     UserOutlined,
-    WhatsAppOutlined,
+    FileTextOutlined,
     CheckCircleOutlined,
 } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import jobService from '../../admin/services/jobService';
 import type { Job, Driver } from '../../types';
-
-// Helper: Build WhatsApp wa.me link with pre-filled message
-function buildWhatsAppLink(params: {
-    mobile: string;
-    customerName: string;
-    carModel: string;
-    carNumber: string;
-    driverName: string;
-    driverTask: string;
-    jobId: string;
-}) {
-    const phone = params.mobile.replace(/[^\d]/g, '');
-    const phoneWithCountry = phone.length === 10 ? `91${phone}` : phone;
-
-    const msg = [
-        `🔧 *LUXRE Repairing Shop*`,
-        ``,
-        `Namaste ${params.customerName} ji! 🙏`,
-        ``,
-        `Aapki car *${params.carModel}* (${params.carNumber}) ke liye humne driver bhej diya hai.`,
-        ``,
-        `🚗 Task: ${params.driverTask}`,
-        `👤 Driver: ${params.driverName}`,
-        `📋 Job ID: ${params.jobId}`,
-        ``,
-        `Koi bhi sawal ho to hume call karein.`,
-        `Dhanyavaad! 🙏`,
-    ].join('\n');
-
-    return `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(msg)}`;
-}
 
 // Status colors
 const statusColorMap: Record<string, string> = {
@@ -73,6 +43,7 @@ const statusColorMap: Record<string, string> = {
 };
 
 export default function ReceptionistDashboard() {
+    const navigate = useNavigate();
     const [searchValue, setSearchValue] = useState('');
     const [searching, setSearching] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -94,13 +65,10 @@ export default function ReceptionistDashboard() {
     const [selectedTask, setSelectedTask] = useState<'Pickup' | 'Drop'>('Pickup');
     const [assigning, setAssigning] = useState(false);
 
-    // WhatsApp success state
-    const [whatsappResult, setWhatsappResult] = useState<{
+    // Success state
+    const [assignmentResult, setAssignmentResult] = useState<{
         show: boolean;
         customerName: string;
-        mobile: string;
-        carModel: string;
-        carNumber: string;
         driverName: string;
         driverTask: string;
         jobId: string;
@@ -186,17 +154,14 @@ export default function ReceptionistDashboard() {
             message.success(`Driver assigned for ${selectedTask} on Job ${selectedJob.jobId}`);
             setDriverModalOpen(false);
 
-            // Find driver name for WhatsApp message
+            // Find driver name for success message
             const assignedDriver = drivers.find(d => d._id === selectedDriverId);
             const driverName = assignedDriver?.name || 'Driver';
 
-            // Show WhatsApp success result
-            setWhatsappResult({
+            // Show success result
+            setAssignmentResult({
                 show: true,
                 customerName: selectedJob.customerName,
-                mobile: selectedJob.mobile,
-                carModel: selectedJob.carModel,
-                carNumber: selectedJob.carNumber,
                 driverName,
                 driverTask: selectedTask,
                 jobId: selectedJob.jobId,
@@ -214,21 +179,6 @@ export default function ReceptionistDashboard() {
         } finally {
             setAssigning(false);
         }
-    };
-
-    // Open WhatsApp for any job
-    const openWhatsAppForJob = (job: Job) => {
-        const driverObj = job.driverId && typeof job.driverId === 'object' ? job.driverId : null;
-        const link = buildWhatsAppLink({
-            mobile: job.mobile,
-            customerName: job.customerName,
-            carModel: job.carModel,
-            carNumber: job.carNumber,
-            driverName: driverObj?.name || 'Driver',
-            driverTask: job.driverTask || 'Pickup',
-            jobId: job.jobId,
-        });
-        window.open(link, '_blank');
     };
 
     const columns = [
@@ -345,16 +295,16 @@ export default function ReceptionistDashboard() {
                     >
                         Assign Driver
                     </Button>
-                    <Tooltip title="Send WhatsApp to Customer">
+                    <Tooltip title="View Invoice">
                         <Button
                             size="small"
-                            icon={<WhatsAppOutlined />}
-                            onClick={() => openWhatsAppForJob(record)}
+                            icon={<FileTextOutlined />}
+                            onClick={() => navigate(`/invoice/${record.jobId}`)}
                             style={{
                                 borderRadius: 8,
                                 fontWeight: 600,
-                                background: '#25D366',
-                                borderColor: '#25D366',
+                                background: '#4f46e5',
+                                borderColor: '#4f46e5',
                                 color: '#fff',
                             }}
                         />
@@ -599,47 +549,27 @@ export default function ReceptionistDashboard() {
                 )}
             </Modal>
 
-            {/* WhatsApp Success Modal */}
+            {/* Success Modal */}
             <Modal
-                open={!!whatsappResult?.show}
-                onCancel={() => setWhatsappResult(null)}
+                open={!!assignmentResult?.show}
+                onCancel={() => setAssignmentResult(null)}
                 footer={null}
                 width={480}
                 centered
                 destroyOnClose
             >
-                {whatsappResult && (
+                {assignmentResult && (
                     <Result
-                        icon={<CheckCircleOutlined style={{ color: '#25D366' }} />}
+                        icon={<CheckCircleOutlined style={{ color: '#10b981' }} />}
                         title="Driver Assigned Successfully! 🎉"
-                        subTitle={`${whatsappResult.driverName} assigned for ${whatsappResult.driverTask} — Job ${whatsappResult.jobId}`}
+                        subTitle={`${assignmentResult.driverName} assigned for ${assignmentResult.driverTask} — Job ${assignmentResult.jobId}`}
                         extra={[
                             <Button
-                                key="whatsapp"
+                                key="close"
                                 type="primary"
                                 size="large"
-                                icon={<WhatsAppOutlined />}
-                                onClick={() => {
-                                    const link = buildWhatsAppLink(whatsappResult);
-                                    window.open(link, '_blank');
-                                }}
-                                style={{
-                                    background: '#25D366',
-                                    borderColor: '#25D366',
-                                    borderRadius: 12,
-                                    fontWeight: 700,
-                                    height: 52,
-                                    paddingInline: 32,
-                                    fontSize: 16,
-                                }}
-                            >
-                                Send WhatsApp to {whatsappResult.customerName}
-                            </Button>,
-                            <Button
-                                key="close"
-                                size="large"
-                                onClick={() => setWhatsappResult(null)}
-                                style={{ borderRadius: 12, height: 48 }}
+                                onClick={() => setAssignmentResult(null)}
+                                style={{ borderRadius: 12, height: 48, fontWeight: 700 }}
                             >
                                 Close
                             </Button>,

@@ -14,6 +14,7 @@ import {
     Platform,
     Image,
     StatusBar,
+    Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
@@ -21,6 +22,8 @@ import useJobStore from '../store/jobStore';
 import useAuthStore from '../store/authStore';
 import { colors } from '../theme';
 import { carModels } from '../data/carModels';
+
+const { width } = Dimensions.get('window');
 
 export default function DriverCreateJobScreen() {
     const { createJob, loading } = useJobStore();
@@ -36,7 +39,7 @@ export default function DriverCreateJobScreen() {
     const [showCarModal, setShowCarModal] = useState(false);
     const [carSearchText, setCarSearchText] = useState('');
     const [createdJobs, setCreatedJobs] = useState<{ jobId: string; customer: string }[]>([]);
-    const [carImage, setCarImage] = useState<{ uri: string; type: string; name: string } | null>(null);
+    const [carImages, setCarImages] = useState<Array<{ uri: string; type: string; name: string }>>([]);
 
     const filteredCars = carModels.filter((m) =>
         m.toLowerCase().includes(carSearchText.toLowerCase()),
@@ -49,7 +52,7 @@ export default function DriverCreateJobScreen() {
         setCarNumber('');
         setKmDriven('');
         setLocation('');
-        setCarImage(null);
+        setCarImages([]);
     };
 
     const handleCreateJob = async () => {
@@ -86,7 +89,7 @@ export default function DriverCreateJobScreen() {
             kmDriven: parseInt(kmDriven),
             jobType: 'Pickup',
             location: location.trim(),
-            carImage: carImage || undefined,
+            carImages: carImages.length > 0 ? carImages : undefined,
         });
 
         if (job) {
@@ -102,17 +105,27 @@ export default function DriverCreateJobScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
-            <StatusBar barStyle="light-content" backgroundColor="#10b981" />
-            {/* Header */}
-            <View style={styles.header}>
-                <View>
-                    <Text style={styles.headerTitle}>🚛 Driver Portal</Text>
-                    <Text style={styles.headerSubtitle}>Hello, {user?.name || 'Driver'}</Text>
-                </View>
-                <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-                    <Text style={styles.logoutText}>Logout</Text>
-                </TouchableOpacity>
+        <View style={styles.container}>
+            <StatusBar barStyle="light-content" backgroundColor="#0ea5e9" />
+            
+            {/* Premium Header */}
+            <View style={styles.headerGradient}>
+                <SafeAreaView edges={['top']}>
+                    <View style={styles.headerContent}>
+                        <View style={styles.headerLeft}>
+                            <View style={styles.iconCircle}>
+                                <Text style={styles.iconEmoji}>🚛</Text>
+                            </View>
+                            <View>
+                                <Text style={styles.headerTitle}>Driver Portal</Text>
+                                <Text style={styles.headerSubtitle}>Welcome, {user?.name || 'Driver'}</Text>
+                            </View>
+                        </View>
+                        <TouchableOpacity style={styles.logoutButton} onPress={logout} activeOpacity={0.8}>
+                            <Text style={styles.logoutText}>Logout</Text>
+                        </TouchableOpacity>
+                    </View>
+                </SafeAreaView>
             </View>
 
             <KeyboardAvoidingView
@@ -122,201 +135,313 @@ export default function DriverCreateJobScreen() {
                     style={styles.scrollView}
                     contentContainerStyle={styles.scrollContent}
                     keyboardShouldPersistTaps="handled">
-                    {/* Pickup Badge */}
-                    <View style={styles.pickupBadge}>
-                        <Text style={styles.pickupBadgeText}>🚛 PICKUP JOB ONLY</Text>
+                    {/* Stats Badge */}
+                    <View style={styles.statsContainer}>
+                        <View style={styles.statsBadge}>
+                            <View style={styles.statsIcon}>
+                                <Text style={styles.statsIconText}>🚛</Text>
+                            </View>
+                            <View style={styles.statsContent}>
+                                <Text style={styles.statsLabel}>Job Type</Text>
+                                <Text style={styles.statsValue}>Pickup Service Only</Text>
+                            </View>
+                        </View>
                     </View>
 
                     {/* Form Card */}
                     <View style={styles.card}>
-                        <Text style={styles.cardTitle}>Create Pickup Job</Text>
-                        <Text style={styles.cardSubtitle}>
-                            Register vehicle for pickup service
-                        </Text>
+                        <View style={styles.cardHeader}>
+                            <View style={styles.cardHeaderIcon}>
+                                <Text style={styles.cardHeaderEmoji}>📝</Text>
+                            </View>
+                            <View>
+                                <Text style={styles.cardTitle}>Create New Job</Text>
+                                <Text style={styles.cardSubtitle}>Fill in vehicle details</Text>
+                            </View>
+                        </View>
 
                         {/* Customer Name */}
-                        <Text style={styles.label}>Customer Name *</Text>
-                        <View style={styles.inputWrap}>
-                            <Text style={styles.inputIcon}>👤</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Enter customer name"
-                                placeholderTextColor="#94a3b8"
-                                value={customerName}
-                                onChangeText={setCustomerName}
-                            />
+                        <View style={styles.formGroup}>
+                            <Text style={styles.label}>
+                                <Text style={styles.labelIcon}>👤 </Text>
+                                Customer Name
+                                <Text style={styles.required}> *</Text>
+                            </Text>
+                            <View style={styles.inputContainer}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Enter full name"
+                                    placeholderTextColor="#94a3b8"
+                                    value={customerName}
+                                    onChangeText={setCustomerName}
+                                />
+                            </View>
                         </View>
 
                         {/* Mobile */}
-                        <Text style={styles.label}>Mobile Number *</Text>
-                        <View style={styles.inputWrap}>
-                            <Text style={styles.inputPrefix}>+91</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="10-digit mobile"
-                                placeholderTextColor="#94a3b8"
-                                value={mobile}
-                                onChangeText={setMobile}
-                                keyboardType="phone-pad"
-                                maxLength={10}
-                            />
+                        <View style={styles.formGroup}>
+                            <Text style={styles.label}>
+                                <Text style={styles.labelIcon}>📱 </Text>
+                                Mobile Number
+                                <Text style={styles.required}> *</Text>
+                            </Text>
+                            <View style={styles.inputContainer}>
+                                <View style={styles.inputPrefix}>
+                                    <Text style={styles.inputPrefixText}>+91</Text>
+                                </View>
+                                <TextInput
+                                    style={[styles.input, styles.inputWithPrefix]}
+                                    placeholder="10-digit mobile"
+                                    placeholderTextColor="#94a3b8"
+                                    value={mobile}
+                                    onChangeText={setMobile}
+                                    keyboardType="phone-pad"
+                                    maxLength={10}
+                                />
+                            </View>
                         </View>
 
                         {/* Car Model Selector */}
-                        <Text style={styles.label}>Car Model *</Text>
-                        <TouchableOpacity
-                            style={styles.selectButton}
-                            onPress={() => setShowCarModal(true)}>
-                            <Text style={carModel ? styles.selectText : styles.selectPlaceholder}>
-                                {carModel || 'Select car model'}
+                        <View style={styles.formGroup}>
+                            <Text style={styles.label}>
+                                <Text style={styles.labelIcon}>🚗 </Text>
+                                Car Model
+                                <Text style={styles.required}> *</Text>
                             </Text>
-                            <Text style={{ fontSize: 16 }}>▼</Text>
-                        </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.selectButton}
+                                onPress={() => setShowCarModal(true)}
+                                activeOpacity={0.7}>
+                                <Text style={carModel ? styles.selectText : styles.selectPlaceholder}>
+                                    {carModel || 'Select car model'}
+                                </Text>
+                                <Text style={styles.selectArrow}>▼</Text>
+                            </TouchableOpacity>
+                        </View>
 
                         {/* Car Number */}
-                        <Text style={styles.label}>Car Number *</Text>
-                        <View style={styles.inputWrap}>
-                            <Text style={styles.inputIcon}>🚗</Text>
-                            <TextInput
-                                style={[styles.input, { textTransform: 'uppercase' }]}
-                                placeholder="e.g. JH-01-AB-1234"
-                                placeholderTextColor="#94a3b8"
-                                value={carNumber}
-                                onChangeText={setCarNumber}
-                                autoCapitalize="characters"
-                            />
+                        <View style={styles.formGroup}>
+                            <Text style={styles.label}>
+                                <Text style={styles.labelIcon}>🔢 </Text>
+                                Registration Number
+                                <Text style={styles.required}> *</Text>
+                            </Text>
+                            <View style={styles.inputContainer}>
+                                <TextInput
+                                    style={[styles.input, { textTransform: 'uppercase' }]}
+                                    placeholder="e.g. JH-01-AB-1234"
+                                    placeholderTextColor="#94a3b8"
+                                    value={carNumber}
+                                    onChangeText={setCarNumber}
+                                    autoCapitalize="characters"
+                                />
+                            </View>
                         </View>
 
                         {/* KM Driven */}
-                        <Text style={styles.label}>Kilometer Driven *</Text>
-                        <View style={styles.inputWrap}>
-                            <Text style={styles.inputIcon}>📏</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Odometer reading"
-                                placeholderTextColor="#94a3b8"
-                                value={kmDriven}
-                                onChangeText={setKmDriven}
-                                keyboardType="numeric"
-                            />
+                        <View style={styles.formGroup}>
+                            <Text style={styles.label}>
+                                <Text style={styles.labelIcon}>📏 </Text>
+                                Odometer Reading
+                                <Text style={styles.required}> *</Text>
+                            </Text>
+                            <View style={styles.inputContainer}>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Current kilometer reading"
+                                    placeholderTextColor="#94a3b8"
+                                    value={kmDriven}
+                                    onChangeText={setKmDriven}
+                                    keyboardType="numeric"
+                                />
+                                <View style={styles.inputSuffix}>
+                                    <Text style={styles.inputSuffixText}>KM</Text>
+                                </View>
+                            </View>
                         </View>
 
-                        {/* Car Image */}
-                        <Text style={styles.label}>Car Photo (Optional)</Text>
-                        {carImage ? (
-                            <View style={styles.imagePreviewWrap}>
-                                <Image source={{ uri: carImage.uri }} style={styles.imagePreview} />
-                                <TouchableOpacity
-                                    style={styles.removeImageBtn}
-                                    onPress={() => setCarImage(null)}
-                                >
-                                    <Text style={{ fontSize: 18, color: '#dc2626', fontWeight: '700' }}>✕</Text>
-                                </TouchableOpacity>
+                        {/* Car Images */}
+                        <View style={styles.formGroup}>
+                            <View style={styles.labelRow}>
+                                <Text style={styles.label}>
+                                    <Text style={styles.labelIcon}>📸 </Text>
+                                    Vehicle Photos
+                                </Text>
+                                <View style={styles.imageCountBadge}>
+                                    <Text style={styles.imageCountText}>{carImages.length}/10</Text>
+                                </View>
                             </View>
-                        ) : (
-                            <View style={styles.imagePickerRow}>
-                                <TouchableOpacity
-                                    style={styles.imagePickerBtn}
-                                    onPress={() => {
-                                        launchCamera(
-                                            { mediaType: 'photo', quality: 0.7, maxWidth: 1200, maxHeight: 1200 },
-                                            (response) => {
-                                                if (response.assets && response.assets[0]) {
-                                                    const asset = response.assets[0];
-                                                    setCarImage({
-                                                        uri: asset.uri!,
-                                                        type: asset.type || 'image/jpeg',
-                                                        name: asset.fileName || 'car_photo.jpg',
-                                                    });
-                                                }
-                                            },
-                                        );
-                                    }}
-                                >
-                                    <Text style={{ fontSize: 24 }}>📷</Text>
-                                    <Text style={styles.imagePickerText}>Camera</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={styles.imagePickerBtn}
-                                    onPress={() => {
-                                        launchImageLibrary(
-                                            { mediaType: 'photo', quality: 0.7, maxWidth: 1200, maxHeight: 1200 },
-                                            (response) => {
-                                                if (response.assets && response.assets[0]) {
-                                                    const asset = response.assets[0];
-                                                    setCarImage({
-                                                        uri: asset.uri!,
-                                                        type: asset.type || 'image/jpeg',
-                                                        name: asset.fileName || 'car_photo.jpg',
-                                                    });
-                                                }
-                                            },
-                                        );
-                                    }}
-                                >
-                                    <Text style={{ fontSize: 24 }}>🖼️</Text>
-                                    <Text style={styles.imagePickerText}>Gallery</Text>
-                                </TouchableOpacity>
-                            </View>
-                        )}
+                            
+                            {/* Image Grid */}
+                            {carImages.length > 0 && (
+                                <View style={styles.imageGrid}>
+                                    {carImages.map((image, index) => (
+                                        <View key={index} style={styles.imageCard}>
+                                            <Image source={{ uri: image.uri }} style={styles.imagePreview} />
+                                            <TouchableOpacity
+                                                style={styles.removeImageBtn}
+                                                onPress={() => setCarImages(prev => prev.filter((_, i) => i !== index))}
+                                                activeOpacity={0.8}>
+                                                <Text style={styles.removeImageText}>✕</Text>
+                                            </TouchableOpacity>
+                                            <View style={styles.imageNumber}>
+                                                <Text style={styles.imageNumberText}>{index + 1}</Text>
+                                            </View>
+                                        </View>
+                                    ))}
+                                </View>
+                            )}
+                            
+                            {/* Add Image Buttons */}
+                            {carImages.length < 10 && (
+                                <View style={styles.imagePickerRow}>
+                                    <TouchableOpacity
+                                        style={styles.imagePickerBtn}
+                                        onPress={() => {
+                                            launchCamera(
+                                                { mediaType: 'photo', quality: 0.7, maxWidth: 1200, maxHeight: 1200 },
+                                                (response) => {
+                                                    if (response.assets && response.assets[0]) {
+                                                        const asset = response.assets[0];
+                                                        setCarImages(prev => [...prev, {
+                                                            uri: asset.uri!,
+                                                            type: asset.type || 'image/jpeg',
+                                                            name: asset.fileName || `car_photo_${Date.now()}.jpg`,
+                                                        }]);
+                                                    }
+                                                },
+                                            );
+                                        }}
+                                        activeOpacity={0.7}>
+                                        <View style={styles.imagePickerGradient}>
+                                            <View style={styles.imagePickerIcon}>
+                                                <Text style={styles.imagePickerEmoji}>📷</Text>
+                                            </View>
+                                            <Text style={styles.imagePickerText}>Camera</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={styles.imagePickerBtn}
+                                        onPress={() => {
+                                            launchImageLibrary(
+                                                { 
+                                                    mediaType: 'photo', 
+                                                    quality: 0.7, 
+                                                    maxWidth: 1200, 
+                                                    maxHeight: 1200,
+                                                    selectionLimit: 10 - carImages.length,
+                                                },
+                                                (response) => {
+                                                    if (response.assets) {
+                                                        const newImages = response.assets.map((asset, idx) => ({
+                                                            uri: asset.uri!,
+                                                            type: asset.type || 'image/jpeg',
+                                                            name: asset.fileName || `car_photo_${Date.now()}_${idx}.jpg`,
+                                                        }));
+                                                        setCarImages(prev => [...prev, ...newImages].slice(0, 10));
+                                                    }
+                                                },
+                                            );
+                                        }}
+                                        activeOpacity={0.7}>
+                                        <View style={[styles.imagePickerGradient, styles.imagePickerGradient2]}>
+                                            <View style={styles.imagePickerIcon}>
+                                                <Text style={styles.imagePickerEmoji}>🖼️</Text>
+                                            </View>
+                                            <Text style={styles.imagePickerText}>Gallery</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                        </View>
 
                         {/* Pickup Location */}
-                        <View style={styles.locationSection}>
-                            <Text style={styles.locationLabel}>📍 Pickup Location *</Text>
-                            <TextInput
-                                style={styles.locationInput}
-                                placeholder="Enter full pickup address (e.g. 123, Main Road, Ranchi, Jharkhand)"
-                                placeholderTextColor="#94a3b8"
-                                value={location}
-                                onChangeText={setLocation}
-                                multiline
-                                numberOfLines={3}
-                                textAlignVertical="top"
-                            />
+                        <View style={styles.formGroup}>
+                            <Text style={styles.label}>
+                                <Text style={styles.labelIcon}>📍 </Text>
+                                Pickup Location
+                                <Text style={styles.required}> *</Text>
+                            </Text>
+                            <View style={styles.locationCard}>
+                                <TextInput
+                                    style={styles.locationInput}
+                                    placeholder="Enter complete pickup address with landmarks"
+                                    placeholderTextColor="#94a3b8"
+                                    value={location}
+                                    onChangeText={setLocation}
+                                    multiline
+                                    numberOfLines={3}
+                                    textAlignVertical="top"
+                                />
+                            </View>
                         </View>
 
                         {/* Submit Button */}
                         <TouchableOpacity
-                            style={[styles.submitButton, loading && { opacity: 0.7 }]}
+                            style={styles.submitButton}
                             onPress={handleCreateJob}
                             disabled={loading}
                             activeOpacity={0.8}>
-                            {loading ? (
-                                <ActivityIndicator color="#fff" />
-                            ) : (
-                                <Text style={styles.submitText}>🚛 Create Pickup Job</Text>
-                            )}
+                            <View style={[styles.submitGradient, loading && styles.submitDisabled]}>
+                                {loading ? (
+                                    <ActivityIndicator color="#fff" size="small" />
+                                ) : (
+                                    <>
+                                        <Text style={styles.submitIcon}>✓</Text>
+                                        <Text style={styles.submitText}>Create Pickup Job</Text>
+                                    </>
+                                )}
+                            </View>
                         </TouchableOpacity>
                     </View>
 
                     {/* Recently Created Jobs */}
                     {createdJobs.length > 0 && (
                         <View style={styles.recentCard}>
-                            <Text style={styles.recentTitle}>
-                                ✅ Created Today ({createdJobs.length})
-                            </Text>
+                            <View style={styles.recentHeader}>
+                                <View style={styles.recentHeaderIcon}>
+                                    <Text style={styles.recentHeaderEmoji}>✅</Text>
+                                </View>
+                                <View>
+                                    <Text style={styles.recentTitle}>Today's Jobs</Text>
+                                    <Text style={styles.recentSubtitle}>{createdJobs.length} jobs created</Text>
+                                </View>
+                            </View>
                             {createdJobs.map((j, i) => (
                                 <View key={i} style={styles.recentRow}>
-                                    <Text style={styles.recentJobId}>{j.jobId}</Text>
+                                    <View style={styles.recentJobBadge}>
+                                        <Text style={styles.recentJobId}>{j.jobId}</Text>
+                                    </View>
                                     <Text style={styles.recentCustomer}>{j.customer}</Text>
+                                    <View style={styles.recentCheck}>
+                                        <Text style={styles.recentCheckIcon}>✓</Text>
+                                    </View>
                                 </View>
                             ))}
                         </View>
                     )}
                 </ScrollView>
             </KeyboardAvoidingView>
-
             {/* Car Model Picker Modal */}
             <Modal visible={showCarModal} animationType="slide" transparent>
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Select Car Model</Text>
-                            <TouchableOpacity onPress={() => setShowCarModal(false)}>
+                            <View style={styles.modalHeaderLeft}>
+                                <View style={styles.modalHeaderIcon}>
+                                    <Text style={styles.modalHeaderEmoji}>🚗</Text>
+                                </View>
+                                <Text style={styles.modalTitle}>Select Car Model</Text>
+                            </View>
+                            <TouchableOpacity 
+                                style={styles.modalCloseBtn}
+                                onPress={() => setShowCarModal(false)}
+                                activeOpacity={0.7}>
                                 <Text style={styles.modalClose}>✕</Text>
                             </TouchableOpacity>
                         </View>
                         <View style={styles.modalSearch}>
+                            <Text style={styles.searchIcon}>🔍</Text>
                             <TextInput
                                 style={styles.modalSearchInput}
                                 placeholder="Search car model..."
@@ -338,7 +463,8 @@ export default function DriverCreateJobScreen() {
                                         setCarModel(item);
                                         setShowCarModal(false);
                                         setCarSearchText('');
-                                    }}>
+                                    }}
+                                    activeOpacity={0.7}>
                                     <Text
                                         style={[
                                             styles.modalItemText,
@@ -347,297 +473,355 @@ export default function DriverCreateJobScreen() {
                                         {item}
                                     </Text>
                                     {item === carModel && (
-                                        <Text style={{ color: '#10b981', fontSize: 18 }}>✓</Text>
+                                        <View style={styles.modalCheckIcon}>
+                                            <Text style={styles.modalCheckText}>✓</Text>
+                                        </View>
                                     )}
                                 </TouchableOpacity>
                             )}
                             ListEmptyComponent={
-                                <Text style={styles.modalEmpty}>No car models found</Text>
+                                <View style={styles.modalEmptyContainer}>
+                                    <Text style={styles.modalEmptyIcon}>🔍</Text>
+                                    <Text style={styles.modalEmpty}>No car models found</Text>
+                                </View>
                             }
                         />
                     </View>
                 </View>
             </Modal>
-        </SafeAreaView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8fafc',
+        backgroundColor: '#f1f5f9',
     },
-    header: {
+    // ─── Premium Header ─────────────────────────────────────────
+    headerGradient: {
+        paddingBottom: 20,
+        backgroundColor: '#0ea5e9',
+    },
+    headerContent: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingTop: 12,
-        paddingBottom: 14,
-        backgroundColor: '#10b981',
+    },
+    headerLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    iconCircle: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: 'rgba(255,255,255,0.25)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    iconEmoji: {
+        fontSize: 24,
     },
     headerTitle: {
-        fontSize: 22,
+        fontSize: 20,
         fontWeight: '800',
         color: '#fff',
+        letterSpacing: 0.3,
     },
     headerSubtitle: {
         fontSize: 13,
-        color: 'rgba(255,255,255,0.85)',
+        color: 'rgba(255,255,255,0.9)',
         marginTop: 2,
+        fontWeight: '500',
     },
     logoutButton: {
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 10,
+        backgroundColor: 'rgba(255,255,255,0.25)',
+        paddingHorizontal: 18,
+        paddingVertical: 10,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.3)',
     },
     logoutText: {
         color: '#fff',
         fontWeight: '700',
         fontSize: 13,
+        letterSpacing: 0.5,
     },
+    // ─── Content ────────────────────────────────────────────────
     scrollView: {
         flex: 1,
     },
     scrollContent: {
-        padding: 16,
+        padding: 20,
         paddingBottom: 40,
     },
-    pickupBadge: {
-        backgroundColor: '#ecfdf5',
-        borderRadius: 12,
-        paddingVertical: 10,
+    // ─── Stats Badge ────────────────────────────────────────────
+    statsContainer: {
+        marginBottom: 20,
+    },
+    statsBadge: {
+        flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 16,
+        padding: 16,
+        borderRadius: 16,
+        gap: 14,
         borderWidth: 1,
         borderColor: '#a7f3d0',
+        backgroundColor: '#ecfdf5',
     },
-    pickupBadgeText: {
+    statsIcon: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    statsIconText: {
+        fontSize: 22,
+    },
+    statsContent: {
+        flex: 1,
+    },
+    statsLabel: {
+        fontSize: 11,
+        fontWeight: '700',
         color: '#059669',
-        fontWeight: '800',
-        fontSize: 14,
+        textTransform: 'uppercase',
         letterSpacing: 1,
     },
+    statsValue: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#047857',
+        marginTop: 2,
+    },
+    // ─── Card ───────────────────────────────────────────────────
     card: {
         backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        elevation: 3,
-        marginBottom: 16,
+        borderRadius: 20,
+        padding: 24,
+        shadowColor: '#0ea5e9',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 4,
+        marginBottom: 20,
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        marginBottom: 24,
+        paddingBottom: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f1f5f9',
+    },
+    cardHeaderIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: '#eff6ff',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    cardHeaderEmoji: {
+        fontSize: 20,
     },
     cardTitle: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: '800',
-        color: '#1e293b',
-        marginBottom: 4,
+        color: '#0f172a',
+        letterSpacing: 0.2,
     },
     cardSubtitle: {
         fontSize: 13,
         color: '#64748b',
+        marginTop: 2,
+        fontWeight: '500',
+    },
+    // ─── Form Groups ────────────────────────────────────────────
+    formGroup: {
         marginBottom: 20,
     },
     label: {
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: '700',
-        color: '#475569',
-        marginBottom: 6,
-        marginTop: 12,
+        color: '#334155',
+        marginBottom: 10,
+        letterSpacing: 0.2,
     },
-    inputWrap: {
+    labelIcon: {
+        fontSize: 14,
+    },
+    labelRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    required: {
+        color: '#ef4444',
+        fontWeight: '800',
+    },
+    // ─── Inputs ─────────────────────────────────────────────────
+    inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#f8fafc',
-        borderRadius: 12,
-        borderWidth: 1.5,
+        borderRadius: 14,
+        borderWidth: 2,
         borderColor: '#e2e8f0',
-        paddingHorizontal: 12,
-        height: 50,
-    },
-    inputIcon: {
-        fontSize: 16,
-        marginRight: 8,
-    },
-    inputPrefix: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#64748b',
-        marginRight: 8,
+        overflow: 'hidden',
     },
     input: {
         flex: 1,
         fontSize: 15,
-        color: '#1e293b',
-        height: '100%',
+        color: '#0f172a',
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        fontWeight: '500',
     },
+    inputWithPrefix: {
+        paddingLeft: 0,
+    },
+    inputPrefix: {
+        paddingLeft: 16,
+        paddingRight: 12,
+        borderRightWidth: 2,
+        borderRightColor: '#e2e8f0',
+    },
+    inputPrefixText: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#64748b',
+    },
+    inputSuffix: {
+        paddingRight: 16,
+        paddingLeft: 12,
+        borderLeftWidth: 2,
+        borderLeftColor: '#e2e8f0',
+    },
+    inputSuffixText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#64748b',
+    },
+    // ─── Select Button ──────────────────────────────────────────
     selectButton: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: '#f8fafc',
-        borderRadius: 12,
-        borderWidth: 1.5,
+        borderRadius: 14,
+        borderWidth: 2,
         borderColor: '#e2e8f0',
-        paddingHorizontal: 14,
-        height: 50,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
     },
     selectText: {
         fontSize: 15,
-        color: '#1e293b',
-        fontWeight: '500',
+        color: '#0f172a',
+        fontWeight: '600',
     },
     selectPlaceholder: {
         fontSize: 15,
         color: '#94a3b8',
+        fontWeight: '500',
     },
-    locationSection: {
-        marginTop: 16,
-        backgroundColor: '#ecfdf5',
-        borderRadius: 12,
-        padding: 14,
-        borderWidth: 1,
-        borderColor: '#a7f3d0',
-    },
-    locationLabel: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#059669',
-        marginBottom: 8,
-    },
-    locationInput: {
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#d1fae5',
-        padding: 12,
-        fontSize: 14,
-        color: '#1e293b',
-        minHeight: 80,
-    },
-    submitButton: {
-        height: 54,
-        borderRadius: 14,
-        backgroundColor: '#10b981',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: 24,
-        shadowColor: '#10b981',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.35,
-        shadowRadius: 10,
-        elevation: 6,
-    },
-    submitText: {
-        color: '#fff',
-        fontSize: 17,
-        fontWeight: '800',
-    },
-    // ─── Recent Jobs ────────────
-    recentCard: {
-        backgroundColor: '#fff',
-        borderRadius: 14,
-        padding: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    recentTitle: {
-        fontSize: 15,
-        fontWeight: '800',
-        color: '#1e293b',
-        marginBottom: 12,
-    },
-    recentRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingVertical: 8,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
-    },
-    recentJobId: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#10b981',
-    },
-    recentCustomer: {
-        fontSize: 14,
+    selectArrow: {
+        fontSize: 12,
         color: '#64748b',
     },
-    // ─── Car Modal ──────────────
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'flex-end',
+    // ─── Location ───────────────────────────────────────────────
+    locationCard: {
+        backgroundColor: '#f8fafc',
+        borderRadius: 14,
+        borderWidth: 2,
+        borderColor: '#e2e8f0',
+        overflow: 'hidden',
     },
-    modalContent: {
-        backgroundColor: '#fff',
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        maxHeight: '70%',
-        paddingBottom: 30,
-    },
-    modalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#e2e8f0',
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: '800',
-        color: '#1e293b',
-    },
-    modalClose: {
-        fontSize: 22,
-        color: '#94a3b8',
-        fontWeight: '600',
-    },
-    modalSearch: {
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-    },
-    modalSearchInput: {
-        backgroundColor: '#f1f5f9',
-        borderRadius: 10,
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        fontSize: 15,
-        color: '#1e293b',
-    },
-    modalItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 14,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f8fafc',
-    },
-    modalItemActive: {
-        backgroundColor: '#ecfdf5',
-    },
-    modalItemText: {
-        fontSize: 15,
-        color: '#334155',
-    },
-    modalItemTextActive: {
-        fontWeight: '700',
-        color: '#10b981',
-    },
-    modalEmpty: {
-        textAlign: 'center',
-        padding: 24,
-        color: '#94a3b8',
+    locationInput: {
         fontSize: 14,
+        color: '#0f172a',
+        padding: 16,
+        minHeight: 100,
+        fontWeight: '500',
+    },
+    // ─── Image Picker ───────────────────────────────────────────
+    imageCountBadge: {
+        backgroundColor: '#0ea5e9',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+    },
+    imageCountText: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#fff',
+        letterSpacing: 0.5,
+    },
+    imageGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+        marginBottom: 12,
+    },
+    imageCard: {
+        position: 'relative',
+        width: (width - 88) / 2,
+        aspectRatio: 1,
+        borderRadius: 16,
+        overflow: 'hidden',
+        backgroundColor: '#f8fafc',
+        borderWidth: 2,
+        borderColor: '#e2e8f0',
+    },
+    imagePreview: {
+        width: '100%',
+        height: '100%',
+    },
+    removeImageBtn: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    removeImageText: {
+        fontSize: 16,
+        color: '#ef4444',
+        fontWeight: '700',
+    },
+    imageNumber: {
+        position: 'absolute',
+        bottom: 8,
+        left: 8,
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    imageNumberText: {
+        fontSize: 12,
+        color: '#fff',
+        fontWeight: '700',
     },
     imagePickerRow: {
         flexDirection: 'row',
@@ -645,42 +829,280 @@ const styles = StyleSheet.create({
     },
     imagePickerBtn: {
         flex: 1,
-        height: 80,
-        borderRadius: 12,
-        borderWidth: 1.5,
-        borderColor: '#d1fae5',
-        borderStyle: 'dashed',
-        backgroundColor: '#f0fdf4',
+        borderRadius: 14,
+        overflow: 'hidden',
+    },
+    imagePickerGradient: {
+        height: 90,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 6,
+        gap: 8,
+        borderWidth: 2,
+        borderColor: '#e2e8f0',
+        borderRadius: 14,
+        backgroundColor: '#f0f9ff',
+    },
+    imagePickerGradient2: {
+        backgroundColor: '#faf5ff',
+    },
+    imagePickerIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    imagePickerEmoji: {
+        fontSize: 20,
     },
     imagePickerText: {
         fontSize: 13,
-        fontWeight: '600',
-        color: '#059669',
+        fontWeight: '700',
+        color: '#334155',
+        letterSpacing: 0.3,
     },
-    imagePreviewWrap: {
-        position: 'relative',
-        borderRadius: 12,
+    // ─── Submit Button ──────────────────────────────────────────
+    submitButton: {
+        marginTop: 8,
+        borderRadius: 16,
         overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: '#d1fae5',
+        shadowColor: '#0ea5e9',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+        elevation: 6,
     },
-    imagePreview: {
-        width: '100%',
-        height: 160,
-        borderRadius: 12,
-    },
-    removeImageBtn: {
-        position: 'absolute',
-        top: 8,
-        right: 8,
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        backgroundColor: 'rgba(255,255,255,0.9)',
+    submitGradient: {
+        flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
+        paddingVertical: 18,
+        gap: 10,
+        backgroundColor: '#0ea5e9',
+    },
+    submitDisabled: {
+        backgroundColor: '#94a3b8',
+    },
+    submitIcon: {
+        fontSize: 20,
+        color: '#fff',
+    },
+    submitText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '800',
+        letterSpacing: 0.5,
+    },
+    // ─── Recent Jobs ────────────────────────────────────────────
+    recentCard: {
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        padding: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    recentHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        marginBottom: 16,
+        paddingBottom: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f1f5f9',
+    },
+    recentHeaderIcon: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        backgroundColor: '#ecfdf5',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    recentHeaderEmoji: {
+        fontSize: 18,
+    },
+    recentTitle: {
+        fontSize: 16,
+        fontWeight: '800',
+        color: '#0f172a',
+    },
+    recentSubtitle: {
+        fontSize: 12,
+        color: '#64748b',
+        marginTop: 2,
+        fontWeight: '500',
+    },
+    recentRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        gap: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f8fafc',
+    },
+    recentJobBadge: {
+        backgroundColor: '#eff6ff',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
+    },
+    recentJobId: {
+        fontSize: 13,
+        fontWeight: '800',
+        color: '#0ea5e9',
+    },
+    recentCustomer: {
+        flex: 1,
+        fontSize: 14,
+        color: '#334155',
+        fontWeight: '600',
+    },
+    recentCheck: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#10b981',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    recentCheckIcon: {
+        fontSize: 14,
+        color: '#fff',
+        fontWeight: '700',
+    },
+    // ─── Modal ──────────────────────────────────────────────────
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        maxHeight: '75%',
+        paddingBottom: 30,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f1f5f9',
+    },
+    modalHeaderLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    modalHeaderIcon: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        backgroundColor: '#eff6ff',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    modalHeaderEmoji: {
+        fontSize: 18,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: '800',
+        color: '#0f172a',
+    },
+    modalCloseBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: '#f1f5f9',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    modalClose: {
+        fontSize: 20,
+        color: '#64748b',
+        fontWeight: '600',
+    },
+    modalSearch: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        gap: 10,
+    },
+    searchIcon: {
+        fontSize: 16,
+        position: 'absolute',
+        left: 36,
+        zIndex: 1,
+    },
+    modalSearchInput: {
+        flex: 1,
+        backgroundColor: '#f8fafc',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        paddingLeft: 40,
+        paddingVertical: 12,
+        fontSize: 15,
+        color: '#0f172a',
+        borderWidth: 2,
+        borderColor: '#e2e8f0',
+        fontWeight: '500',
+    },
+    modalItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f8fafc',
+    },
+    modalItemActive: {
+        backgroundColor: '#eff6ff',
+    },
+    modalItemText: {
+        fontSize: 15,
+        color: '#334155',
+        fontWeight: '500',
+    },
+    modalItemTextActive: {
+        fontWeight: '700',
+        color: '#0ea5e9',
+    },
+    modalCheckIcon: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#0ea5e9',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    modalCheckText: {
+        fontSize: 14,
+        color: '#fff',
+        fontWeight: '700',
+    },
+    modalEmptyContainer: {
+        alignItems: 'center',
+        paddingVertical: 40,
+    },
+    modalEmptyIcon: {
+        fontSize: 48,
+        marginBottom: 12,
+        opacity: 0.5,
+    },
+    modalEmpty: {
+        textAlign: 'center',
+        color: '#94a3b8',
+        fontSize: 14,
+        fontWeight: '500',
     },
 });

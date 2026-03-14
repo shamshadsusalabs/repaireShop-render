@@ -35,7 +35,7 @@ export default function ManagerCreateJobScreen() {
     const [location, setLocation] = useState('');
     const [showCarModels, setShowCarModels] = useState(false);
     const [filteredModels, setFilteredModels] = useState(carModels);
-    const [carImage, setCarImage] = useState<{ uri: string; type: string; name: string } | null>(null);
+    const [carImages, setCarImages] = useState<Array<{ uri: string; type: string; name: string }>>([]);
 
     // Auto-fill when history found
     useEffect(() => {
@@ -100,7 +100,7 @@ export default function ManagerCreateJobScreen() {
             kmDriven: Number(kmDriven),
             jobType,
             location: location.trim(),
-            carImage: carImage || undefined,
+            carImages: carImages.length > 0 ? carImages : undefined,
         });
 
         if (job) {
@@ -220,19 +220,29 @@ export default function ManagerCreateJobScreen() {
 
                 {/* Job Type */}
 
-                {/* Car Image */}
-                <Text style={styles.label}>Car Image (Optional)</Text>
-                {carImage ? (
-                    <View style={styles.imagePreviewWrap}>
-                        <Image source={{ uri: carImage.uri }} style={styles.imagePreview} />
-                        <TouchableOpacity
-                            style={styles.removeImageBtn}
-                            onPress={() => setCarImage(null)}
-                        >
-                            <Icon name="close-circle" size={26} color={colors.danger} />
-                        </TouchableOpacity>
+                {/* Car Images */}
+                <Text style={styles.label}>Car Images (Max 10)</Text>
+                <Text style={styles.imageCount}>{carImages.length}/10 images</Text>
+                
+                {/* Image Grid */}
+                {carImages.length > 0 && (
+                    <View style={styles.imageGrid}>
+                        {carImages.map((image, index) => (
+                            <View key={index} style={styles.imagePreviewWrap}>
+                                <Image source={{ uri: image.uri }} style={styles.imagePreview} />
+                                <TouchableOpacity
+                                    style={styles.removeImageBtn}
+                                    onPress={() => setCarImages(prev => prev.filter((_, i) => i !== index))}
+                                >
+                                    <Icon name="close-circle" size={26} color={colors.danger} />
+                                </TouchableOpacity>
+                            </View>
+                        ))}
                     </View>
-                ) : (
+                )}
+                
+                {/* Add Image Buttons */}
+                {carImages.length < 10 && (
                     <View style={styles.imagePickerRow}>
                         <TouchableOpacity
                             style={styles.imagePickerBtn}
@@ -242,11 +252,11 @@ export default function ManagerCreateJobScreen() {
                                     (response) => {
                                         if (response.assets && response.assets[0]) {
                                             const asset = response.assets[0];
-                                            setCarImage({
+                                            setCarImages(prev => [...prev, {
                                                 uri: asset.uri!,
                                                 type: asset.type || 'image/jpeg',
-                                                name: asset.fileName || 'car_photo.jpg',
-                                            });
+                                                name: asset.fileName || `car_photo_${Date.now()}.jpg`,
+                                            }]);
                                         }
                                     },
                                 );
@@ -259,15 +269,21 @@ export default function ManagerCreateJobScreen() {
                             style={styles.imagePickerBtn}
                             onPress={() => {
                                 launchImageLibrary(
-                                    { mediaType: 'photo', quality: 0.7, maxWidth: 1200, maxHeight: 1200 },
+                                    { 
+                                        mediaType: 'photo', 
+                                        quality: 0.7, 
+                                        maxWidth: 1200, 
+                                        maxHeight: 1200,
+                                        selectionLimit: 10 - carImages.length,
+                                    },
                                     (response) => {
-                                        if (response.assets && response.assets[0]) {
-                                            const asset = response.assets[0];
-                                            setCarImage({
+                                        if (response.assets) {
+                                            const newImages = response.assets.map((asset, idx) => ({
                                                 uri: asset.uri!,
                                                 type: asset.type || 'image/jpeg',
-                                                name: asset.fileName || 'car_photo.jpg',
-                                            });
+                                                name: asset.fileName || `car_photo_${Date.now()}_${idx}.jpg`,
+                                            }));
+                                            setCarImages(prev => [...prev, ...newImages].slice(0, 10));
                                         }
                                     },
                                 );
@@ -553,6 +569,7 @@ const styles = StyleSheet.create({
     imagePickerRow: {
         flexDirection: 'row',
         gap: 12,
+        marginTop: 8,
     },
     imagePickerBtn: {
         flex: 1,
@@ -571,8 +588,22 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: colors.primary,
     },
+    imageCount: {
+        fontSize: 12,
+        color: colors.textMuted,
+        marginBottom: 8,
+        fontWeight: '600',
+    },
+    imageGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+        marginBottom: 12,
+    },
     imagePreviewWrap: {
         position: 'relative',
+        width: '48%',
+        aspectRatio: 1,
         borderRadius: 14,
         overflow: 'hidden',
         borderWidth: 1,
@@ -580,7 +611,7 @@ const styles = StyleSheet.create({
     },
     imagePreview: {
         width: '100%',
-        height: 180,
+        height: '100%',
         borderRadius: 14,
     },
     removeImageBtn: {

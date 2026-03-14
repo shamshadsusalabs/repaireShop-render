@@ -56,7 +56,7 @@ export default function PartsRequestsPage() {
 
     // Issue parts
     const handleIssueParts = async () => {
-        if (!selectedJob) return;
+        if (!selectedJob || issuing) return; // Prevent double submission
 
         // Filter out entries without selected partId
         const validParts = partsSelection.filter(p => p.partId && p.quantityIssued > 0);
@@ -71,6 +71,7 @@ export default function PartsRequestsPage() {
             const { data: res } = await jobApiService.issueParts(selectedJob.jobId, validParts);
             if (res.data.errors && res.data.errors.length > 0) {
                 message.warning(`${res.data.issued} issued, ${res.data.failed} failed`);
+                console.log('Errors:', res.data.errors);
             } else {
                 message.success(`✅ ${res.data.issued} parts issued successfully!`);
             }
@@ -79,8 +80,10 @@ export default function PartsRequestsPage() {
             fetchParts(); // Refresh inventory
         } catch (err: any) {
             message.error(err.response?.data?.message || 'Failed to issue parts');
+            console.error('Issue parts error:', err);
+        } finally {
+            setIssuing(false);
         }
-        setIssuing(false);
     };
 
     // Mark job ready for repair

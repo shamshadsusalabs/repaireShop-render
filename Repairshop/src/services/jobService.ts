@@ -9,11 +9,11 @@ export interface CreateJobPayload {
     kmDriven: number;
     jobType: 'Pickup' | 'Walk-in';
     location?: string;
-    carImage?: {
+    carImages?: Array<{
         uri: string;
         type: string;
         name: string;
-    };
+    }>;
 }
 
 const jobService = {
@@ -30,7 +30,7 @@ const jobService = {
 
     // Create a new job (driver / manager)
     createJob: (payload: CreateJobPayload) => {
-        if (payload.carImage) {
+        if (payload.carImages && payload.carImages.length > 0) {
             const formData = new FormData();
             formData.append('customerName', payload.customerName);
             formData.append('mobile', payload.mobile);
@@ -41,12 +41,15 @@ const jobService = {
             if (payload.location) {
                 formData.append('location', payload.location);
             }
-            formData.append('carImage', payload.carImage as any);
+            // Append multiple images
+            payload.carImages.forEach((image) => {
+                formData.append('carImages', image as any);
+            });
             return api.post('/jobs', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
         }
-        const { carImage, ...rest } = payload;
+        const { carImages, ...rest } = payload;
         return api.post('/jobs', rest);
     },
 

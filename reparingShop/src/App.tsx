@@ -172,6 +172,7 @@ function ReceptionistRoutes() {
         <Route element={<ReceptionistLayout />}>
           <Route path="/" element={<ReceptionistDashboard />} />
           <Route path="/search" element={<ReceptionistDashboard />} />
+          <Route path="/invoice/:jobId" element={<Invoice />} />
           <Route path="/send-notification" element={<SendNotification />} />
           <Route path="/whatsapp-groups" element={<WhatsAppGroups />} />
           <Route path="/whatsapp-templates" element={<WhatsAppTemplates />} />

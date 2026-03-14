@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const WHATSAPP_SERVER_URL = 'https://repaireshop-2.onrender.com/api/whatsapp';
+const WHATSAPP_SERVER_URL = 'https://repaireshop-render-1.onrender.com/api/whatsapp';
 
 export interface WhatsAppSession {
     sessionId: string;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Table, Tag, Typography, message, Button, Modal, Form, Input, InputNumber, Select, Row, Col, Card, Statistic, Space } from 'antd';
-import { EyeOutlined, PlusOutlined, ShoppingCartOutlined, DollarOutlined } from '@ant-design/icons';
+import { Table, Tag, Typography, message, Button, Modal, Form, Input, InputNumber, Select, Row, Col, Card, Statistic, Space, Popconfirm } from 'antd';
+import { EyeOutlined, PlusOutlined, ShoppingCartOutlined, DollarOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import api from '../../admin/services/api';
 import type { PurchaseOrder } from '../../types';
@@ -23,6 +23,7 @@ export default function StoreOrders() {
     const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [creating, setCreating] = useState(false);
+    const [editingOrder, setEditingOrder] = useState<PurchaseOrder | null>(null);
     const [form] = Form.useForm();
 
     // Live cost preview
@@ -79,16 +80,71 @@ export default function StoreOrders() {
     const handleCreatePO = async (values: any) => {
         try {
             setCreating(true);
-            const res = await api.post('/store/orders', values);
+            if (editingOrder) {
+                // Update existing order
+                const res = await api.put(`/store/orders/${editingOrder._id}`, values);
+                if (res.data.success) {
+                    message.success('Purchase Order updated successfully!');
+                    setIsModalOpen(false);
+                    setEditingOrder(null);
+                    fetchOrders();
+                }
+            } else {
+                // Create new order
+                const res = await api.post('/store/orders', values);
+                if (res.data.success) {
+                    message.success('Purchase Order created successfully!');
+                    setIsModalOpen(false);
+                    fetchOrders();
+                }
+            }
+        } catch (error: any) {
+            message.error(error.response?.data?.message || `Failed to ${editingOrder ? 'update' : 'create'} PO`);
+        } finally {
+            setCreating(false);
+        }
+    };
+
+    const handleEdit = (record: PurchaseOrder) => {
+        setEditingOrder(record);
+        const vendorId = typeof record.vendorId === 'string' ? record.vendorId : record.vendorId._id;
+        form.setFieldsValue({
+            vendorId: vendorId,
+            partName: record.partName,
+            partNumber: record.partNumber,
+            unitPrice: record.unitPrice,
+            quantity: record.quantity,
+            discount: record.discount || 0,
+            gstPercent: record.gstPercent || 18,
+            notes: record.notes || '',
+        });
+        
+        // Calculate preview for existing order
+        const subtotal = record.unitPrice * record.quantity;
+        const discountAmt = subtotal * ((record.discount || 0) / 100);
+        const afterDiscount = subtotal - discountAmt;
+        const gstAmt = afterDiscount * ((record.gstPercent || 18) / 100);
+        const total = afterDiscount + gstAmt;
+        
+        setPreview({
+            subtotal: Math.round(subtotal * 100) / 100,
+            discount: Math.round(discountAmt * 100) / 100,
+            gst: Math.round(gstAmt * 100) / 100,
+            total: Math.round(total * 100) / 100,
+        });
+        
+        setIsModalOpen(true);
+    };
+
+    const handleDelete = async (orderId: string) => {
+        try {
+            const res = await api.delete(`/store/orders/${orderId}`);
             if (res.data.success) {
-                message.success('Purchase Order created successfully!');
-                setIsModalOpen(false);
+                message.success('Purchase Order deleted successfully!');
                 fetchOrders();
             }
         } catch (error: any) {
-            message.error(error.response?.data?.message || 'Failed to create PO');
-        } finally {
-            setCreating(false);
+            message.error(error.response?.data?.message || 'Failed to delete PO');
         }
     };
 
@@ -117,6 +173,7 @@ export default function StoreOrders() {
     };
 
     const openCreateModal = () => {
+        setEditingOrder(null);
         form.resetFields();
         form.setFieldsValue({ quantity: 1, discount: 0, gstPercent: 18 });
         setPreview({ subtotal: 0, discount: 0, gst: 0, total: 0 });
@@ -186,15 +243,40 @@ export default function StoreOrders() {
         {
             title: 'Action',
             key: 'action',
+            width: 200,
             render: (_: any, record: PurchaseOrder) => (
-                <Button
-                    type="primary"
-                    icon={<EyeOutlined />}
-                    onClick={() => navigate(`/order-invoice/${record._id}`)}
-                    size="small"
-                >
-                    Invoice
-                </Button>
+                <Space size="small">
+                    <Button
+                        type="primary"
+                        icon={<EyeOutlined />}
+                        onClick={() => navigate(`/order-invoice/${record._id}`)}
+                        size="small"
+                    >
+                        Invoice
+                    </Button>
+                    <Button
+                        icon={<EditOutlined />}
+                        onClick={() => handleEdit(record)}
+                        size="small"
+                    >
+                        Edit
+                    </Button>
+                    <Popconfirm
+                        title="Delete Purchase Order"
+                        description="Are you sure you want to delete this order?"
+                        onConfirm={() => handleDelete(record._id)}
+                        okText="Yes"
+                        cancelText="No"
+                    >
+                        <Button
+                            danger
+                            icon={<DeleteOutlined />}
+                            size="small"
+                        >
+                            Delete
+                        </Button>
+                    </Popconfirm>
+                </Space>
             ),
         },
     ];
@@ -250,11 +332,14 @@ export default function StoreOrders() {
                 style={{ background: '#fff', padding: 24, borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}
             />
 
-            {/* Create PO Modal */}
+            {/* Create/Edit PO Modal */}
             <Modal
-                title={<span style={{ fontSize: 18, fontWeight: 700 }}>➕ Create Purchase Order</span>}
+                title={<span style={{ fontSize: 18, fontWeight: 700 }}>{editingOrder ? '✏️ Edit Purchase Order' : '➕ Create Purchase Order'}</span>}
                 open={isModalOpen}
-                onCancel={() => setIsModalOpen(false)}
+                onCancel={() => {
+                    setIsModalOpen(false);
+                    setEditingOrder(null);
+                }}
                 footer={null}
                 width={640}
                 destroyOnClose
@@ -393,10 +478,13 @@ export default function StoreOrders() {
                                 block
                                 style={{ height: 48, fontWeight: 700, flex: 1 }}
                             >
-                                Create Order
+                                {editingOrder ? 'Update Order' : 'Create Order'}
                             </Button>
                             <Button
-                                onClick={() => setIsModalOpen(false)}
+                                onClick={() => {
+                                    setIsModalOpen(false);
+                                    setEditingOrder(null);
+                                }}
                                 block
                                 style={{ height: 48, flex: 1 }}
                             >
