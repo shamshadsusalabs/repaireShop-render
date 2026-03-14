@@ -1,0 +1,444 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+:root {
+  --primary: #3730a3;
+  --primary-light: #4f46e5;
+  --primary-dark: #1e1b4b;
+  --accent-green: #10b981;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-blue: #3b82f6;
+  --bg-main: #f0f2f5;
+  --bg-card: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --sidebar-bg: linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #3730a3 100%);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ant Design overrides */
+.ant-layout {
+  background: var(--bg-main) !important;
+}
+
+.ant-layout-sider {
+  background: var(--sidebar-bg) !important;
+}
+
+.ant-menu-dark {
+  background: transparent !important;
+}
+
+.ant-menu-dark .ant-menu-item {
+  margin: 4px 12px !important;
+  border-radius: 10px !important;
+  height: 44px !important;
+  line-height: 44px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+}
+
+.ant-menu-dark .ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.ant-menu-dark .ant-menu-item-selected {
+  background: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.ant-card {
+  border-radius: 14px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.3s ease !important;
+}
+
+.ant-card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.04) !important;
+  transform: translateY(-2px);
+}
+
+.stat-card:hover {
+  transform: translateY(-4px) !important;
+}
+
+.ant-btn-primary {
+  background: var(--primary-light) !important;
+  border-color: var(--primary-light) !important;
+  border-radius: 10px !important;
+  height: 40px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.ant-btn-primary:hover {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+.ant-tag {
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  padding: 2px 12px !important;
+  font-size: 12px !important;
+}
+
+.ant-steps .ant-steps-item-process .ant-steps-item-icon {
+  background: var(--primary-light) !important;
+  border-color: var(--primary-light) !important;
+}
+
+.ant-steps .ant-steps-item-finish .ant-steps-item-icon {
+  border-color: var(--accent-green) !important;
+}
+
+.ant-steps .ant-steps-item-finish .ant-steps-item-icon>.ant-steps-icon {
+  color: var(--accent-green) !important;
+}
+
+.ant-table {
+  border-radius: 14px !important;
+  overflow: hidden !important;
+}
+
+.ant-table-thead>tr>th {
+  background: #f8fafc !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+}
+
+/* Sidebar Logo Area */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 8px;
+}
+
+.sidebar-logo-icon {
+  width: 42px;
+  height: 42px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.sidebar-logo-text h3 {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.sidebar-logo-text span {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+/* Page Header */
+.page-header {
+  margin-bottom: 28px;
+}
+
+.page-header h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+}
+
+.page-header p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Invoice Print Styles */
+@media print {
+
+  @page {
+    size: A4;
+    margin: 8mm;
+  }
+
+  html,
+  body {
+    width: 210mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .ant-layout-sider,
+  .ant-layout-header,
+  .no-print {
+    display: none !important;
+  }
+
+  .ant-layout,
+  .ant-layout-content {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #fff !important;
+    min-height: auto !important;
+  }
+
+  /* Remove card hover effects for print */
+  .ant-card,
+  .ant-card:hover {
+    box-shadow: none !important;
+    border: none !important;
+    transform: none !important;
+  }
+
+  .invoice-container {
+    box-shadow: none !important;
+    border: none !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .invoice-container .ant-card-body {
+    padding: 0 !important;
+  }
+
+  /* Compact invoice header */
+  .invoice-header {
+    padding: 14px 16px !important;
+    margin-bottom: 14px !important;
+    border-radius: 8px !important;
+  }
+
+  .invoice-header h2 {
+    font-size: 18px !important;
+  }
+
+  .invoice-header img {
+    height: 36px !important;
+    width: auto !important;
+    max-width: 100px !important;
+  }
+
+  .invoice-header .invoice-title {
+    font-size: 22px !important;
+  }
+
+  .invoice-header .invoice-addr {
+    font-size: 10px !important;
+    line-height: 1.5 !important;
+  }
+
+  .invoice-header .invoice-meta {
+    font-size: 10px !important;
+  }
+
+  /* Compact customer/vehicle info */
+  .invoice-customer-grid {
+    gap: 12px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .invoice-info-box {
+    padding: 10px 14px !important;
+    border-radius: 8px !important;
+  }
+
+  .invoice-info-box .info-label {
+    font-size: 9px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .invoice-info-box .info-title {
+    font-size: 13px !important;
+    margin-bottom: 2px !important;
+  }
+
+  .invoice-info-box .info-detail {
+    font-size: 11px !important;
+  }
+
+  /* Compact table */
+  .invoice-container .ant-table {
+    font-size: 11px !important;
+  }
+
+  .invoice-container .ant-table-thead>tr>th {
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+  }
+
+  .invoice-container .ant-table-tbody>tr>td {
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+  }
+
+  .invoice-container .ant-table-tbody .part-name {
+    font-size: 11px !important;
+  }
+
+  .invoice-container .ant-table-tbody .part-desc {
+    font-size: 9px !important;
+  }
+
+  /* Compact divider */
+  .invoice-container .ant-divider {
+    margin: 8px 0 !important;
+  }
+
+  /* Compact totals section */
+  .invoice-totals {
+    page-break-inside: avoid !important;
+  }
+
+  .invoice-totals .total-row {
+    padding: 3px 0 !important;
+    font-size: 11px !important;
+  }
+
+  .invoice-totals .grand-total-box {
+    padding: 10px 12px !important;
+    margin-top: 6px !important;
+    border-radius: 8px !important;
+  }
+
+  .invoice-totals .grand-total-box .gt-label {
+    font-size: 14px !important;
+  }
+
+  .invoice-totals .grand-total-box .gt-value {
+    font-size: 18px !important;
+  }
+
+  /* Compact footer */
+  .invoice-footer {
+    margin-top: 14px !important;
+    padding: 12px !important;
+    border-radius: 8px !important;
+    page-break-inside: avoid !important;
+  }
+
+  .invoice-footer .footer-title {
+    font-size: 12px !important;
+  }
+
+  .invoice-footer .footer-text {
+    font-size: 10px !important;
+  }
+
+  /* Animation removal */
+  .fade-in-up {
+    animation: none !important;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Mechanic card */
+.mechanic-card {
+  cursor: pointer;
+  transition: all 0.3s ease !important;
+}
+
+.mechanic-card:hover {
+  border-color: var(--primary-light) !important;
+  box-shadow: 0 8px 25px rgba(79, 70, 229, 0.15) !important;
+}
+
+.mechanic-card.selected {
+  border-color: var(--primary-light) !important;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2) !important;
+  background: #f5f3ff !important;
+}
+
+/* Inspection row */
+.inspection-row {
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 12px;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+
+.inspection-row:hover {
+  border-color: #c7d2fe;
+  background: #fafafe;
+}
+
+/* Approval card animation */
+@keyframes pulse-border {
+
+  0%,
+  100% {
+    border-color: #e2e8f0;
+  }
+
+  50% {
+    border-color: var(--primary-light);
+  }
+}
+
+.approval-card {
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+/* Fade in animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.5s ease-out;
+}
