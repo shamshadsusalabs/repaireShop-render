@@ -1,8 +1,10 @@
 const Job = require('../models/Job');
 const Part = require('../models/Part');
 const User = require('../models/User');
+const NotificationSettings = require('../models/NotificationSettings');
 const customerService = require('./customerService');
 const generateJobId = require('../utils/generateJobId');
+const { sendInteraktMessage } = require('./whatsappService');
 
 /**
  * Create a new job
@@ -36,6 +38,35 @@ const createJob = async (jobData, userId) => {
 
     // Update the last KM reading with job ID
     await customerService.updateKmWithJobId(customer.mobile, jobId);
+
+    // Send auto WhatsApp notification to customer
+    try {
+        // Read settings from DB (admin/manager configurable)
+        const settings = await NotificationSettings.findOne({ templateKey: 'job_created' });
+        const companyName   = settings?.companyName   || 'Luxure';
+        const contactNumber = settings?.contactNumber || '9217099701';
+        const isEnabled     = settings?.isEnabled !== false; // default enabled
+
+        if (isEnabled) {
+            await sendInteraktMessage(
+                jobData.mobile,
+                'job_created',
+                [
+                    jobData.customerName,           // {{1}} Customer name
+                    companyName,                    // {{2}} Company name
+                    jobId,                          // {{3}} Job ID
+                    jobData.carModel,               // {{4}} Car model
+                    jobData.carNumber,              // {{5}} Car number
+                    jobData.jobType || 'Walk-in',   // {{6}} Job type
+                    contactNumber,                  // {{7}} Helpline number
+                ]
+            );
+        } else {
+            console.log('📲 Job Created WhatsApp notification is DISABLED');
+        }
+    } catch (whatsappErr) {
+        console.error('⚠️ WhatsApp notification failed (job still created):', whatsappErr.message);
+    }
 
     return job;
 };
@@ -177,6 +208,48 @@ const saveFaultyParts = async (jobId, faultyParts) => {
     job.status = 'Approval';
     await job.save();
 
+    // Send auto WhatsApp: customer approval request
+    try {
+        const settings = await NotificationSettings.findOne({ templateKey: 'customer_approval' });
+        const companyName   = settings?.companyName   || 'Luxure';
+        const contactNumber = settings?.contactNumber || '9217099701';
+        const isEnabled     = settings?.isEnabled !== false;
+
+        if (isEnabled) {
+            // Build faulty parts summary (comma-separated)
+            const partsList = faultyParts
+                .map(p => p.partName)
+                .join(', ') || 'Check required';
+
+            // Calculate estimated cost
+            const estimatedTotal = faultyParts.reduce((sum, p) => {
+                return sum + (p.estimatedCost || 0) + (p.labourCharge || 0) - (p.discount || 0);
+            }, 0);
+
+            // Build approval link
+            const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5173';
+            const approvalLink = `${frontendUrl}/approve/${jobId}`;
+
+            await sendInteraktMessage(
+                job.mobile,
+                'customer_approval',
+                [
+                    job.customerName,                       // {{1}} Customer name
+                    job.carModel,                           // {{2}} Car model
+                    job.carNumber,                          // {{3}} Car number
+                    companyName,                            // {{4}} Company name
+                    partsList,                              // {{5}} Faulty parts list
+                    `${estimatedTotal}`,                    // {{6}} Estimated cost
+                    approvalLink,                           // {{7}} Approval link
+                ]
+            );
+        } else {
+            console.log('📲 Customer Approval WhatsApp notification is DISABLED');
+        }
+    } catch (whatsappErr) {
+        console.error('⚠️ Approval WhatsApp failed (faults still saved):', whatsappErr.message);
+    }
+
     return job;
 };
 
@@ -197,6 +270,78 @@ const customerApproval = async (jobId, approved) => {
     await job.save();
 
     return job;
+};
+
+/**
+ * Send auto WhatsApp: invoice ready
+ */
+const sendInvoiceWhatsApp = async (jobId, grandTotal) => {
+    const job = await Job.findOne({ jobId });
+    if (!job) throw new Error(`Job '${jobId}' not found`);
+
+    try {
+        const settings = await NotificationSettings.findOne({ templateKey: 'invoice_ready' });
+        const companyName   = settings?.companyName   || 'Luxure';
+        const isEnabled     = settings?.isEnabled !== false;
+
+        if (isEnabled) {
+            const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5173';
+            const invoiceLink = `${frontendUrl}/invoice-view/${jobId}`;
+
+            await sendInteraktMessage(
+                job.mobile,
+                'invoice_ready',
+                [
+                    job.customerName,                       // {{1}} Customer name
+                    job.carModel,                           // {{2}} Car model
+                    job.carNumber,                          // {{3}} Car number
+                    companyName,                            // {{4}} Company name
+                    `${grandTotal}`,                        // {{5}} Grand Total
+                    jobId,                                  // {{6}} Job ID
+                    invoiceLink,                            // {{7}} Invoice link
+                ]
+            );
+            return { success: true, message: 'Invoice WhatsApp sent successfully' };
+        } else {
+            console.log('📲 Invoice WhatsApp notification is DISABLED');
+            return { success: false, message: 'Invoice notification is disabled' };
+        }
+    } catch (error) {
+        console.error('⚠️ Invoice WhatsApp failed:', error.message);
+        throw error;
+    }
+};
+
+/**
+ * Send WhatsApp notification for vehicle Drop/Delivery
+ */
+const sendDropWhatsApp = async (jobId, customVariables) => {
+    try {
+        const job = await Job.findOne({ jobId });
+        if (!job) throw new Error(`Job '${jobId}' not found`);
+
+        const dropSetting = await NotificationSettings.findOne({ templateKey: 'job_drop' });
+        if (dropSetting && dropSetting.isEnabled === false) {
+            return { success: false, message: 'Drop notification is disabled' };
+        }
+
+        // Send WhatsApp Message using variables provided by frontend
+        try {
+            await sendInteraktMessage(
+                job.mobile,
+                'job_drop',
+                customVariables
+            );
+            console.log(`✅ Drop WhatsApp sent to ${job.mobile}`);
+            return { success: true, message: 'Drop WhatsApp sent successfully' };
+        } catch (waError) {
+            console.error('❌ Failed to send Drop WhatsApp:', waError.message);
+            throw new Error('Failed to send WhatsApp message via Interakt');
+        }
+    } catch (error) {
+        console.error('Error in sendDropWhatsApp:', error);
+        throw error;
+    }
 };
 
 /**
@@ -510,4 +655,6 @@ module.exports = {
     markReadyForRepair,
     assignDriver,
     getDrivers,
+    sendInvoiceWhatsApp,
+    sendDropWhatsApp,
 };

@@ -89,6 +89,7 @@ export default function InventoryPage() {
             buyGstPercent: part.buyGstPercent || 0,
             sellPrice: part.sellPrice,
             sellGstPercent: part.sellGstPercent || 0,
+            hsnCode: part.hsnCode || '',
             location: part.location,
             supplier: part.supplier,
             vehicleModel: part.vehicleModel,
@@ -247,6 +248,13 @@ export default function InventoryPage() {
                     <div style={{ fontSize: 11, color: '#94a3b8' }}>+ {record.sellGstPercent || 0}% GST</div>
                 </div>
             ),
+        },
+        {
+            title: 'HSN Code',
+            dataIndex: 'hsnCode',
+            key: 'hsnCode',
+            width: 110,
+            render: (v: string) => v ? <Tag color="geekblue" style={{ borderRadius: 6, fontWeight: 600, fontFamily: 'monospace' }}>{v}</Tag> : <span style={{ color: '#cbd5e1' }}>—</span>,
         },
         {
             title: 'Vehicle',
@@ -473,11 +481,19 @@ export default function InventoryPage() {
                     </Row>
 
                     <Row gutter={16}>
-                        <Col span={8}>
+                        <Col span={12}>
+                            <Form.Item name="hsnCode" label={<span style={{ fontWeight: 600 }}>HSN Code</span>}>
+                                <Input placeholder="e.g. 87089900" style={{ fontFamily: 'monospace' }} />
+                            </Form.Item>
+                        </Col>
+                        <Col span={12}>
                             <Form.Item name="location" label={<span style={{ fontWeight: 600 }}>Location / Rack</span>}>
                                 <Input placeholder="e.g. Rack A1" />
                             </Form.Item>
                         </Col>
+                    </Row>
+
+                    <Row gutter={16}>
                         <Col span={8}>
                             <Form.Item name="supplier" label={<span style={{ fontWeight: 600 }}>Supplier</span>}>
                                 <Input placeholder="e.g. Bosch India" />

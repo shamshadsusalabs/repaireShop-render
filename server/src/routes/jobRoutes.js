@@ -129,4 +129,18 @@ router.put('/:jobId/ready-for-repair', authorize('store', 'admin'), jobControlle
 // ─── Delete Job (Admin Only) ─────────────────────────────────
 router.delete('/:jobId', authorize('admin'), jobController.deleteJob);
 
+// ─── Send Invoice WhatsApp ───────────────────────────────────
+router.post(
+    '/:jobId/send-invoice-whatsapp',
+    authorize('admin', 'manager', 'receptionist'),
+    jobController.sendInvoiceWhatsApp
+);
+
+// ─── Send Drop/Delivery WhatsApp ─────────────────────────────
+router.post(
+    '/:jobId/send-drop-whatsapp',
+    authorize('admin', 'manager', 'receptionist'),
+    jobController.sendDropWhatsApp
+);
+
 module.exports = router;

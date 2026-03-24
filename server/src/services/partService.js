@@ -4,7 +4,7 @@ const Part = require('../models/Part');
  * Get all parts with optional filters
  */
 const getAllParts = async (query = {}) => {
-    const { search, category, lowStock, page = 1, limit = 100 } = query;
+    const { search, category, lowStock, page = 1, limit = 1000 } = query;
 
     const filter = { isActive: true };
 
@@ -171,6 +171,7 @@ const bulkCreateParts = async (partsArray, userId) => {
                 location: row.location || '',
                 supplier: row.supplier || '',
                 vehicleModel: row.vehicleModel || '',
+                hsnCode: row.hsnCode || '',
                 description: row.description || '',
                 addedBy: userId,
             });

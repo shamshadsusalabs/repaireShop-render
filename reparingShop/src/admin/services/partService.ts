@@ -11,6 +11,7 @@ export interface Part {
     buyGstPercent: number;
     sellPrice: number;
     sellGstPercent: number;
+    hsnCode: string;
     location: string;
     supplier: string;
     vehicleModel: string;
@@ -58,6 +59,7 @@ export interface CreatePartPayload {
     minStock?: number;
     costPrice: number;
     sellPrice: number;
+    hsnCode?: string;
     location?: string;
     supplier?: string;
     vehicleModel?: string;

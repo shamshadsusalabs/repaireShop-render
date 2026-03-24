@@ -121,6 +121,10 @@ const jobService = {
     // Receptionist: Assign driver to a job
     assignDriver: (jobId: string, driverId: string, driverTask: 'Pickup' | 'Drop') =>
         api.put<{ success: boolean; data: Job }>(`/jobs/${jobId}/assign-driver`, { driverId, driverTask }),
+
+    // Trigger Drop/Delivery WhatsApp
+    sendDropWhatsApp: (jobId: string, variables: string[]) =>
+        api.post<{ success: boolean; message: string }>(`/jobs/${jobId}/send-drop-whatsapp`, { variables }),
 };
 
 export default jobService;

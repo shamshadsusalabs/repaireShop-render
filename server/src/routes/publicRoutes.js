@@ -69,4 +69,37 @@ router.put('/approval/:jobId', async (req, res, next) => {
     }
 });
 
+/**
+ * @desc    Get job details for customer invoice view (Public - no auth)
+ * @route   GET /api/public/invoice/:jobId
+ * @access  Public
+ */
+router.get('/invoice/:jobId', async (req, res, next) => {
+    try {
+        const job = await jobService.getJobById(req.params.jobId);
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+        res.status(200).json({
+            success: true,
+            data: {
+                jobId: job.jobId,
+                customerName: job.customerName,
+                mobile: job.mobile,
+                carModel: job.carModel,
+                carNumber: job.carNumber,
+                kmDriven: job.kmDriven,
+                date: job.date,
+                status: job.status,
+                faultyParts: job.faultyParts,
+                partsIssued: job.partsIssued || [],
+                mechanicName: job.mechanicId ? job.mechanicId.name : null,
+                customerId: job.customerId,
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
 module.exports = router;

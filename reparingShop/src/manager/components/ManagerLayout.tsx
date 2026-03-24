@@ -5,6 +5,7 @@ import {
     CarOutlined,
     LogoutOutlined,
     OrderedListOutlined,
+    WhatsAppOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../../admin/store/authStore';
@@ -46,6 +47,11 @@ export default function ManagerLayout() {
             icon: <CarOutlined />,
             label: 'Car Models',
         },
+        {
+            key: '/notification-settings',
+            icon: <WhatsAppOutlined />,
+            label: 'WhatsApp Settings',
+        },
     ];
 
     const getSelectedKey = () => {
@@ -53,6 +59,7 @@ export default function ManagerLayout() {
         if (location.pathname === '/create-job') return '/create-job';
         if (location.pathname === '/checklist-settings') return '/checklist-settings';
         if (location.pathname === '/car-models') return '/car-models';
+        if (location.pathname === '/notification-settings') return '/notification-settings';
         return '/jobs';
     };
 

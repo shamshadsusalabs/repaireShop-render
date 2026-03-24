@@ -12,6 +12,9 @@ router.post('/groups', whatsAppController.createGroup);
 router.put('/groups/:id', whatsAppController.updateGroup);
 router.delete('/groups/:id', whatsAppController.deleteGroup);
 
+// Campaigns (Interakt API)
+router.post('/send-campaign', whatsAppController.sendCampaign);
+
 // Templates
 router.get('/templates', whatsAppController.getAllTemplates);
 router.post('/templates', whatsAppController.createTemplate);

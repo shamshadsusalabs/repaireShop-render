@@ -11,7 +11,12 @@ const whatsAppTemplateSchema = new mongoose.Schema(
             type: String,
             required: [true, 'Template body is required'],
             trim: true
-        }
+        },
+        // Interakt template variable values (stored per template)
+        driverName: { type: String, trim: true, default: '' },
+        driverNumber: { type: String, trim: true, default: '' },
+        companyName: { type: String, trim: true, default: 'Luxure' },
+        contactNumber: { type: String, trim: true, default: '9217099701' },
     },
     {
         timestamps: true

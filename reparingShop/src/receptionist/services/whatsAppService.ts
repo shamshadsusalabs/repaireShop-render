@@ -20,6 +20,10 @@ export interface WhatsAppTemplate {
     _id: string;
     title: string;
     body: string;
+    driverName?: string;
+    driverNumber?: string;
+    companyName?: string;
+    contactNumber?: string;
     createdAt: string;
     updatedAt: string;
 }

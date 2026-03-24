@@ -16,7 +16,7 @@ const whatsAppRoutes = require('./whatsAppRoutes');
 
 const router = express.Router();
 
-// ─── API Health Check ────────────────────────────────────────
+// ─── API Root ────────────────────────────────────────────────
 router.get('/', (req, res) => {
     res.json({
         success: true,
@@ -37,6 +37,15 @@ router.get('/', (req, res) => {
     });
 });
 
+// ─── Health Check (Cloud Run probe) ─────────────────────────
+router.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'ok',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+    });
+});
+
 // ─── Mount Routes ────────────────────────────────────────────
 router.use('/auth', authRoutes);                   // Admin/Receptionist auth
 router.use('/mechanic-auth', mechanicAuthRoutes);  // Mechanic auth (login, logout, refresh)
@@ -52,5 +61,6 @@ router.use('/store', storeOrderRoutes);            // Store orders for vendor pa
 router.use('/inspection-items', inspectionItemRoutes); // Dynamic inspection checklist
 router.use('/car-models', carModelRoutes);         // Dynamic car models
 router.use('/whatsapp', whatsAppRoutes);           // WhatsApp groups and templates
+router.use('/notification-settings', require('./notificationSettings')); // Auto notification config
 
 module.exports = router;

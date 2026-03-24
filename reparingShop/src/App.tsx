@@ -18,8 +18,10 @@ const Invoice = lazy(() => import('./admin/pages/Invoice'));
 const MechanicManagement = lazy(() => import('./admin/pages/MechanicManagement'));
 const UserManagement = lazy(() => import('./admin/pages/UserManagement'));
 const PublicJobApproval = lazy(() => import('./admin/pages/PublicJobApproval'));
+const PublicInvoice = lazy(() => import('./admin/pages/PublicInvoice'));
 const ManageInspectionItems = lazy(() => import('./admin/pages/ManageInspectionItems'));
 const ManageCarModels = lazy(() => import('./admin/pages/ManageCarModels'));
+const NotificationSettings = lazy(() => import('./admin/pages/NotificationSettings'));
 
 // Manager Layout
 const ManagerLayout = lazy(() => import('./manager/components/ManagerLayout'));
@@ -83,6 +85,7 @@ function AdminRoutes() {
           <Route path="/users" element={<UserManagement />} />
           <Route path="/checklist-settings" element={<ManageInspectionItems />} />
           <Route path="/car-models" element={<ManageCarModels />} />
+          <Route path="/notification-settings" element={<NotificationSettings />} />
           {/* Catch-all: redirect back to dashboard */}
           <Route path="*" element={<Dashboard />} />
         </Route>
@@ -111,6 +114,7 @@ function ManagerRoutes() {
           <Route path="/job/:jobId/invoice" element={<Invoice />} />
           <Route path="/checklist-settings" element={<ManageInspectionItems />} />
           <Route path="/car-models" element={<ManageCarModels />} />
+          <Route path="/notification-settings" element={<NotificationSettings />} />
           {/* Catch-all: redirect back to dashboard */}
           <Route path="*" element={<Dashboard />} />
         </Route>
@@ -296,7 +300,22 @@ export default function App() {
       }}
     >
       <BrowserRouter>
-        <AppRoutes />
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/approve/:jobId" element={
+            <Suspense fallback={<div className="flex justify-center items-center h-screen"><Spin size="large" /></div>}>
+              <PublicJobApproval />
+            </Suspense>
+          } />
+          <Route path="/invoice-view/:jobId" element={
+            <Suspense fallback={<div className="flex justify-center items-center h-screen"><Spin size="large" /></div>}>
+              <PublicInvoice />
+            </Suspense>
+          } />
+
+          {/* Private Routes */}
+          <Route path="*" element={<AppRoutes />} />
+        </Routes>
       </BrowserRouter>
     </ConfigProvider>
   );

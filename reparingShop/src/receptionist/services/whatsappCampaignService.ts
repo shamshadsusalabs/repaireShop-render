@@ -1,15 +1,4 @@
-import axios from 'axios';
-
-const WHATSAPP_SERVER_URL = 'https://repaireshop-render-1.onrender.com/api/whatsapp';
-
-export interface WhatsAppSession {
-    sessionId: string;
-    status: 'uninitialized' | 'initializing' | 'qr' | 'authenticated' | 'ready' | 'auth_failure' | 'disconnected' | 'error';
-    qrDataUrl?: string;
-    phoneNumber?: string;
-    lastError?: string;
-    updatedAt: number;
-}
+import api from '../../admin/services/api';
 
 export interface CampaignRecipient {
     phone: string;
@@ -25,34 +14,24 @@ export interface CampaignStatus {
     failed: number;
 }
 
+export interface TemplateVariables {
+    driverName?: string;
+    driverNumber?: string;
+    companyName?: string;
+    contactNumber?: string;
+    [key: string]: string | undefined;
+}
+
 const whatsappCampaignService = {
-    async getSessionStatus(): Promise<WhatsAppSession> {
-        const { data } = await axios.get(`${WHATSAPP_SERVER_URL}/session/status`);
-        return data.session;
-    },
-
-    async startSession(): Promise<WhatsAppSession> {
-        const { data } = await axios.post(`${WHATSAPP_SERVER_URL}/session/start`);
-        return data.session;
-    },
-
-    async logoutSession(): Promise<WhatsAppSession> {
-        const { data } = await axios.post(`${WHATSAPP_SERVER_URL}/session/logout`);
-        return data.session;
-    },
-
-    async startCampaign(recipients: CampaignRecipient[], templateBody: string): Promise<CampaignStatus> {
-        const { data } = await axios.post(`${WHATSAPP_SERVER_URL}/campaign/start`, {
+    async startCampaign(
+        recipients: CampaignRecipient[],
+        _templateBody: string,   // stored in DB, not needed by backend (uses Interakt template name)
+        variables?: TemplateVariables
+    ): Promise<CampaignStatus> {
+        const { data } = await api.post('/whatsapp/send-campaign', {
             recipients,
-            templateId: 'custom',
-            customTemplate: { body: templateBody },
-            gapSeconds: 2
+            templateVars: variables,   // matches what whatsAppController.js reads
         });
-        return data.job;
-    },
-
-    async getCampaignStatus(jobId: string): Promise<CampaignStatus> {
-        const { data } = await axios.get(`${WHATSAPP_SERVER_URL}/campaign/${jobId}/status`);
         return data.job;
     }
 };

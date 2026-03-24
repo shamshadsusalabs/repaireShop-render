@@ -1,0 +1,24 @@
+runtime: nodejs22
+env: standard
+
+instance_class: F1
+
+automatic_scaling:
+  min_instances: 0
+  max_instances: 2
+
+env_variables:
+  NODE_ENV: "production"
+  PORT: "8080"
+  JWT_EXPIRE: "7d"
+  REFRESH_TOKEN_EXPIRE: "7d"
+  # ⚠️ Neeche wale values apni REAL values se replace karo
+  MONGO_URI: "mongodb+srv://mxluxury:mxluxury@cluster0.4bvlbwo.mongodb.net/repairingShop?appName=Cluster0"
+  JWT_SECRET: "gfdfdtryrdtdrdrrrddffcgyrdtrgyhgjvhjgfytftf34435"
+  REFRESH_TOKEN_SECRET: "djfhgyugeuygerjygfvuyegruycgvyurguvyggyu"
+  CORS_ORIGIN: "https://luxure-812ae.web.app"
+  CLOUDINARY_CLOUD_NAME: "dls8ck9eo"
+  CLOUDINARY_API_KEY: "329921164314554"
+  CLOUDINARY_API_SECRET: "d3WTvpbUbRdwQcuCuQct7cW-h90"
+  whatApp: "V25JaTVTd2lMUU0yYm9GWE9rSzhEZ2ZjN2gxMTFSa09TUGVRNzJCTHhrMDo="
+  whatApp_Number: "+919217099701"

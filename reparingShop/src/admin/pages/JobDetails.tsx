@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, Tag, Steps, Button, Descriptions, Row, Col, Empty, Spin, Image } from 'antd';
 import {
     UserOutlined,
@@ -11,8 +11,10 @@ import {
     FileDoneOutlined,
     ArrowLeftOutlined,
     PictureOutlined,
+    WhatsAppOutlined,
 } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
+import DeliveryWhatsAppModal from '../components/DeliveryWhatsAppModal';
 import useJobStore from '../store/jobStore';
 import useMechanicStore from '../store/mechanicStore';
 import useAuthStore from '../store/authStore';
@@ -49,6 +51,7 @@ export default function JobDetails() {
     const { user } = useAuthStore();
     const navigate = useNavigate();
     const isManager = user?.role === 'manager';
+    const [sendDropModalOpen, setSendDropModalOpen] = useState(false);
 
     useEffect(() => {
         if (jobId) {
@@ -357,16 +360,38 @@ export default function JobDetails() {
                         {nextAction.label}
                     </Button>
                     {job.status === 'Completed' && (
-                        <Button
-                            size="large"
-                            onClick={() => navigate(`/job/${job.jobId}/invoice`)}
-                            icon={<FileDoneOutlined />}
-                        >
-                            View Invoice
-                        </Button>
+                        <>
+                            <Button
+                                size="large"
+                                onClick={() => navigate(`/job/${job.jobId}/invoice`)}
+                                icon={<FileDoneOutlined />}
+                            >
+                                View Invoice
+                            </Button>
+                            <Button
+                                size="large"
+                                icon={<WhatsAppOutlined />}
+                                onClick={() => setSendDropModalOpen(true)}
+                                style={{
+                                    borderColor: '#22c55e',
+                                    color: '#15803d',
+                                    fontWeight: 600,
+                                    background: '#f0fdf4'
+                                }}
+                            >
+                                Send Delivery WA
+                            </Button>
+                        </>
                     )}
                 </div>
             )}
+            
+            <DeliveryWhatsAppModal
+                open={sendDropModalOpen}
+                job={job}
+                onCancel={() => setSendDropModalOpen(false)}
+                onSuccess={() => setSendDropModalOpen(false)}
+            />
         </div>
     );
 }

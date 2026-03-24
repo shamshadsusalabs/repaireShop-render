@@ -15,6 +15,23 @@ const getDashboardStats = async (req, res, next) => {
 };
 
 /**
+ * @desc    Send WhatsApp notification for vehicle Drop/Delivery
+ * @route   POST /api/jobs/:jobId/send-drop-whatsapp
+ * @access  Private
+ */
+const sendDropWhatsApp = async (req, res, next) => {
+    try {
+        const { jobId } = req.params;
+        const { variables } = req.body;
+        const result = await jobService.sendDropWhatsApp(jobId, variables);
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('Error sending drop WhatsApp:', error);
+        next(error);
+    }
+};
+
+/**
  * @desc    Get job history for auto-fill
  * @route   GET /api/jobs/history
  * @access  Private
@@ -327,6 +344,21 @@ const getDrivers = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Send Invoice via WhatsApp
+ * @route   POST /api/jobs/:jobId/send-invoice-whatsapp
+ * @access  Private
+ */
+const sendInvoiceWhatsApp = async (req, res, next) => {
+    try {
+        const { grandTotal } = req.body;
+        const result = await jobService.sendInvoiceWhatsApp(req.params.jobId, grandTotal);
+        res.status(200).json(result);
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getDashboardStats,
     createJob,
@@ -346,4 +378,6 @@ module.exports = {
     markReadyForRepair,
     assignDriver,
     getDrivers,
+    sendInvoiceWhatsApp,
+    sendDropWhatsApp,
 };

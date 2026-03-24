@@ -128,6 +128,7 @@ const uploadExcel = async (req, res, next) => {
             location: row['Location'] || row['location'] || row['Rack'] || row['rack'] || '',
             supplier: row['Supplier'] || row['supplier'] || row['Vendor'] || row['vendor'] || '',
             vehicleModel: row['Vehicle Model'] || row['vehicleModel'] || row['Car Model'] || row['Model'] || '',
+            hsnCode: row['HSN Code'] || row['hsnCode'] || row['HSN'] || row['hsn'] || '',
             description: row['Description'] || row['description'] || row['Desc'] || '',
         }));
 
@@ -179,6 +180,7 @@ const downloadTemplate = async (req, res, next) => {
                 'Location': 'Rack A1',
                 'Supplier': 'Brembo India',
                 'Vehicle Model': 'Maruti Swift',
+                'HSN Code': '87089900',
                 'Description': 'Front brake pads set of 4',
             },
             {
@@ -192,6 +194,7 @@ const downloadTemplate = async (req, res, next) => {
                 'Location': 'Rack B2',
                 'Supplier': 'Bosch India',
                 'Vehicle Model': 'Hyundai i20',
+                'HSN Code': '84212300',
                 'Description': 'Engine oil filter',
             },
         ];

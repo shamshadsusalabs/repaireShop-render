@@ -60,23 +60,39 @@ export default function WhatsAppTemplates() {
     const openEdit = (tpl: WhatsAppTemplate) => {
         setEditingTpl(tpl);
         setBodyValue(tpl.body);
-        form.setFieldsValue({ title: tpl.title, body: tpl.body });
+        form.setFieldsValue({
+            title: tpl.title,
+            body: tpl.body,
+            driverName: tpl.driverName || '',
+            driverNumber: tpl.driverNumber || '',
+            companyName: tpl.companyName || 'Luxure',
+            contactNumber: tpl.contactNumber || '9217099701',
+        });
         setModalOpen(true);
     };
 
-    const handleSave = async (values: { title: string; body: string }) => {
+    const handleSave = async (values: {
+        title: string;
+        body: string;
+        driverName?: string;
+        driverNumber?: string;
+        companyName?: string;
+        contactNumber?: string;
+    }) => {
         try {
+            const payload = {
+                title: values.title.trim(),
+                body: values.body.trim(),
+                driverName: (values.driverName || '').trim(),
+                driverNumber: (values.driverNumber || '').trim(),
+                companyName: (values.companyName || 'Luxure').trim(),
+                contactNumber: (values.contactNumber || '9217099701').trim(),
+            };
             if (editingTpl) {
-                await whatsAppService.updateTemplate(editingTpl._id, {
-                    title: values.title.trim(),
-                    body: values.body.trim()
-                });
+                await whatsAppService.updateTemplate(editingTpl._id, payload);
                 message.success('Template updated successfully!');
             } else {
-                const newTpl = await whatsAppService.createTemplate({
-                    title: values.title.trim(),
-                    body: values.body.trim()
-                });
+                const newTpl = await whatsAppService.createTemplate(payload);
                 setSelectedId(newTpl._id);
                 message.success('Template created successfully!');
             }
@@ -117,6 +133,58 @@ export default function WhatsAppTemplates() {
             <div className="page-header">
                 <h1>📝 Message Templates</h1>
                 <p>Create and manage message templates with easy-to-use variables</p>
+            </div>
+
+            {/* ── Interakt Approved Template Info ── */}
+            <div style={{
+                background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
+                border: '1px solid #86efac',
+                borderRadius: 12,
+                padding: '16px 20px',
+                marginBottom: 20,
+            }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: '#166534', marginBottom: 10 }}>
+                    ✅ Interakt Pe Approved Template — "pickup" (Isi format mein body likhein)
+                </div>
+                <div style={{
+                    background: '#fff',
+                    border: '1px solid #bbf7d0',
+                    borderRadius: 8,
+                    padding: '12px 16px',
+                    fontFamily: 'monospace',
+                    fontSize: 13,
+                    color: '#1e293b',
+                    lineHeight: 1.9,
+                    whiteSpace: 'pre-wrap',
+                    marginBottom: 12,
+                }}>
+{`Hi {{1}}, our driver is ready to pick up your car.
+
+Driver Name: {{2}}
+Driver Number: {{3}}
+
+Thank you for choosing {{4}}.
+For any help, please call us at {{5}}.
+
+Regards,
+{{4}} Team`}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 12 }}>
+                    {[
+                        { tag: '{{1}}', label: 'Customer Name (auto-filled per recipient)' },
+                        { tag: '{{2}}', label: 'Driver Name' },
+                        { tag: '{{3}}', label: 'Driver Number' },
+                        { tag: '{{4}}', label: 'Company Name (e.g. Luxure)' },
+                        { tag: '{{5}}', label: 'Helpline Number' },
+                    ].map(v => (
+                        <span key={v.tag} style={{
+                            background: '#dcfce7', border: '1px solid #86efac',
+                            borderRadius: 6, padding: '2px 8px', color: '#166534', fontWeight: 600
+                        }}>
+                            {v.tag} = {v.label}
+                        </span>
+                    ))}
+                </div>
             </div>
 
             <Spin spinning={loading}>
@@ -288,6 +356,28 @@ export default function WhatsAppTemplates() {
                                     </div>
                                 </Card>
 
+                                {/* Driver Details */}
+                                <Card
+                                    title={
+                                        <span style={{ fontSize: 16, fontWeight: 700 }}>
+                                            🚗 Driver Details (Interakt Variables)
+                                        </span>
+                                    }
+                                    style={{ cursor: 'default' }}
+                                >
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 14 }}>
+                                        <div><span style={{ color: '#94a3b8', fontSize: 12 }}>{'{{2}}'} Driver Name</span><br /><strong>{selectedTpl.driverName || <span style={{ color: '#f59e0b' }}>⚠️ Not set</span>}</strong></div>
+                                        <div><span style={{ color: '#94a3b8', fontSize: 12 }}>{'{{3}}'} Driver Number</span><br /><strong>{selectedTpl.driverNumber || <span style={{ color: '#f59e0b' }}>⚠️ Not set</span>}</strong></div>
+                                        <div><span style={{ color: '#94a3b8', fontSize: 12 }}>{'{{4}}'} Company Name</span><br /><strong>{selectedTpl.companyName || 'Luxure'}</strong></div>
+                                        <div><span style={{ color: '#94a3b8', fontSize: 12 }}>{'{{5}}'} Helpline</span><br /><strong>{selectedTpl.contactNumber || '9217099701'}</strong></div>
+                                    </div>
+                                    {(!selectedTpl.driverName || !selectedTpl.driverNumber) && (
+                                        <div style={{ marginTop: 12, padding: '8px 12px', background: '#fef3c7', borderRadius: 8, fontSize: 13, color: '#92400e', border: '1px solid #fde68a' }}>
+                                            ⚠️ Driver details missing! Click <strong>Edit</strong> above and fill in Driver Name & Number before sending.
+                                        </div>
+                                    )}
+                                </Card>
+
                                 {/* Info Card */}
                                 <Card
                                     title={
@@ -378,17 +468,40 @@ export default function WhatsAppTemplates() {
 
                     <Form.Item
                         name="body"
-                        label={<span style={{ fontWeight: 600 }}>Message Body</span>}
+                        label={<span style={{ fontWeight: 600 }}>Message Body (Preview only — for reference)</span>}
                         rules={[{ required: true, message: 'Please enter message content' }]}
                     >
                         <Input.TextArea
-                            rows={8}
-                            placeholder={`Hi {{name}}!\n\nYour car is ready for pickup.\nJob: {{job}}\nDate: {{date}}\n\nThank you!`}
+                            rows={6}
+                            placeholder={`Hi {{1}}, our driver is ready to pick up your car.\n\nDriver Name: {{2}}\nDriver Number: {{3}}\n\nThank you for choosing {{4}}.\nFor any help, please call us at {{5}}.`}
                             value={bodyValue}
                             onChange={e => setBodyValue(e.target.value)}
                             style={{ fontFamily: 'monospace', fontSize: 14 }}
                         />
                     </Form.Item>
+
+                    {/* Driver / Interakt Variable Fields */}
+                    <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: 16, marginBottom: 16 }}>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: '#166534', marginBottom: 12 }}>
+                            🚗 Interakt Template Variables — Fill these for sending
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                            <Form.Item name="driverName" label={<span style={{ fontWeight: 600, fontSize: 13 }}>{'{{2}}'} Driver Name</span>} style={{ marginBottom: 0 }}
+                                rules={[{ required: true, message: 'Required' }]}>
+                                <Input placeholder="e.g. Sham" size="middle" />
+                            </Form.Item>
+                            <Form.Item name="driverNumber" label={<span style={{ fontWeight: 600, fontSize: 13 }}>{'{{3}}'} Driver Number</span>} style={{ marginBottom: 0 }}
+                                rules={[{ required: true, message: 'Required' }]}>
+                                <Input placeholder="e.g. 8898989889" size="middle" />
+                            </Form.Item>
+                            <Form.Item name="companyName" label={<span style={{ fontWeight: 600, fontSize: 13 }}>{'{{4}}'} Company Name</span>} style={{ marginBottom: 0 }}>
+                                <Input placeholder="Luxure" size="middle" />
+                            </Form.Item>
+                            <Form.Item name="contactNumber" label={<span style={{ fontWeight: 600, fontSize: 13 }}>{'{{5}}'} Helpline Number</span>} style={{ marginBottom: 0 }}>
+                                <Input placeholder="9217099701" size="middle" />
+                            </Form.Item>
+                        </div>
+                    </div>
 
                     {/* Simple Preview */}
                     {bodyValue.trim() && (

@@ -22,6 +22,8 @@ export interface FaultyPart {
     actualCost: number;
     labourCharge: number;
     discount: number;
+    procurementGST?: number;
+    hsnCode?: string;
 }
 
 export interface IssuedPart {
@@ -31,6 +33,8 @@ export interface IssuedPart {
     partNumber: string;
     quantityIssued: number;
     unitPrice: number;
+    gstPercent?: number;
+    hsnCode?: string;
     issuedBy?: {
         _id: string;
         name: string;
